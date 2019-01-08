@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: '4G_v01' 
+ * Project: 'Hunt_Tow' 
  * Target:  'Target 1' 
  */
 
