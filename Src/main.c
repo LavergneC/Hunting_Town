@@ -75,7 +75,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void uartEndLine(UART_HandleTypeDef *huart);
 
 /* USER CODE END PFP */
 
@@ -92,8 +92,9 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	char msg[] = "Debut Transmission : \n";
-	char rxBuff[30];
+	char rxBuff[50] = {"none"};
 	char clock[] = "AT+CCLK?\r";
+	
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -124,18 +125,23 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	//HAL_UART_Transmit(&huart2,(uint8_t*)msg,23,10);
+	HAL_UART_Transmit(&huart2,(uint8_t*)msg,23,10);
+	uartEndLine(&huart2);
+	
   while (1)
   {
-		//HAL_UART_Transmit(&huart3,(uint8_t*)clock,9,10);
+		HAL_UART_Transmit(&huart3,(uint8_t*)clock,9,10);
+		HAL_UART_Transmit(&huart2,(uint8_t*)clock,9,10);
+		uartEndLine(&huart2);
 		//HAL_Delay(100);
-		//HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,30,1000);
-		HAL_UART_Receive(&huart2, (uint8_t*)rxBuff,4,1000);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,30,10);
-		/*
 		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
 		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-		*/
+		uartEndLine(&huart2);
+
+		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
+		uartEndLine(&huart2);
+		uartEndLine(&huart2);
 
 		
     /* USER CODE END WHILE */
@@ -276,7 +282,13 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void uartEndLine(UART_HandleTypeDef *huart){
+	char n[] = {'\n'};
+	
+	HAL_UART_Transmit(huart,(uint8_t*)n,1,10);
+	
+	return;
+}
 /* USER CODE END 4 */
 
 /**
