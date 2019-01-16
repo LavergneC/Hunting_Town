@@ -53,7 +53,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define RX_BUFFER_SIZE 50
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -76,6 +76,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void uartEndLine(UART_HandleTypeDef *huart);
+void sendAT(UART_HandleTypeDef* huart, char command[], int nbRep);
 
 /* USER CODE END PFP */
 
@@ -88,13 +89,13 @@ void uartEndLine(UART_HandleTypeDef *huart);
   * @brief  The application entry point.
   * @retval int
   */
+	
+	
 int main(void)
 {
   /* USER CODE BEGIN 1 */
 	char msg[] = "Debut Transmission : \n";
-	char rxBuff[50] = {"none"};
-	char clock[] = "AT+CCLK?\r";
-	
+	//char clock[] = "AT+CCLK?\r";
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -103,26 +104,17 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
-
   /* Configure the system clock */
   SystemClock_Config();
-
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-  //HAL_UART_Receive_DMA(&huart2,(uint8_t*)rxData,10);
-	/*HAL_UART_Receive(&huart2, (uint8_t*)rxData,4,1000);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxData,4,10);*/
   /* USER CODE END 2 */
-
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,23,10);
@@ -130,19 +122,7 @@ int main(void)
 	
   while (1)
   {
-		HAL_UART_Transmit(&huart3,(uint8_t*)clock,9,10);
-		HAL_UART_Transmit(&huart2,(uint8_t*)clock,9,10);
-		uartEndLine(&huart2);
-		//HAL_Delay(100);
-		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-		uartEndLine(&huart2);
-
-		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-		uartEndLine(&huart2);
-		uartEndLine(&huart2);
-
+		sendAT(&huart3, "AT+CCLK?\r",2);
 		
     /* USER CODE END WHILE */
 
@@ -288,6 +268,29 @@ void uartEndLine(UART_HandleTypeDef *huart){
 	HAL_UART_Transmit(huart,(uint8_t*)n,1,10);
 	
 	return;
+}
+
+int sizeTabChar(char * s){
+	int lenght = 0;
+	while (s[lenght] != '\0')
+		lenght++;
+	return lenght;
+}
+
+void sendAT(UART_HandleTypeDef* huart, char command[], int nbRep){
+	char rxBuff[RX_BUFFER_SIZE];
+
+	if (nbRep < 0)
+		return;
+	
+	HAL_UART_Transmit(huart,(uint8_t*)command,sizeTabChar(command),10);
+	uartEndLine(&huart2);
+	
+	for(int nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
+		HAL_UART_Receive(huart, (uint8_t*)rxBuff,RX_BUFFER_SIZE,1000);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,RX_BUFFER_SIZE,10);
+		uartEndLine(&huart2);
+	}
 }
 /* USER CODE END 4 */
 
