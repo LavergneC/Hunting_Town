@@ -76,6 +76,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -90,8 +91,9 @@ static void MX_USART3_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	char  txData;
-	char  rxData[3]={'1','2','3'};
+	char msg[] = "Debut Transmission : \n";
+	char rxBuff[30];
+	char clock[] = "AT+CCLK?\r";
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -116,15 +118,25 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   //HAL_UART_Receive_DMA(&huart2,(uint8_t*)rxData,10);
-	
+	/*HAL_UART_Receive(&huart2, (uint8_t*)rxData,4,1000);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxData,4,10);*/
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	//HAL_UART_Transmit(&huart2,(uint8_t*)msg,23,10);
   while (1)
   {
-		HAL_UART_Receive(&huart2, (uint8_t*)rxData,4,1000);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxData,4,10);
+		//HAL_UART_Transmit(&huart3,(uint8_t*)clock,9,10);
+		//HAL_Delay(100);
+		//HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,30,1000);
+		HAL_UART_Receive(&huart2, (uint8_t*)rxBuff,4,1000);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,30,10);
+		/*
+		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
+		*/
+
 		
     /* USER CODE END WHILE */
 
