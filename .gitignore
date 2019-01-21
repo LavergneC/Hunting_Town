@@ -4,3 +4,6 @@
 *uvprojx
 *.dep
 *log.htm
+*.d
+*.__
+*.Bak
