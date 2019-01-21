@@ -100,7 +100,6 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
   /* USER CODE BEGIN Init */
   /* USER CODE END Init */
   /* Configure the system clock */
@@ -120,7 +119,7 @@ int main(void)
 	
   while (1)
   {
-		sendAT(&huart3, "AT+CCLK?\r",2);
+		sendAT(&huart3, "AT+CCLK?\r",2,50);
 		
     /* USER CODE END WHILE */
 
