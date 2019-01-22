@@ -77,6 +77,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
+void config_initial(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -93,8 +94,8 @@ static void MX_USART3_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	char msg[] = "Debut Transmission : \n";
-	int s;
+	char msg[] = "\nDebut Transmission : \n";
+	//int s;
 	//char clock[] = "AT+CCLK?\r";
   /* USER CODE END 1 */
 
@@ -102,8 +103,10 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-  char *rxBuff[50];
-	char *com = "AT\r\n";
+  char rxBuff[50];
+	rxBuff[0] = 0x2E;
+	char *com = "AT+CCLK?\r";
+	config_initial();
   /* USER CODE BEGIN Init */
   /* USER CODE END Init */
   /* Configure the system clock */
@@ -118,33 +121,42 @@ int main(void)
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	HAL_UART_Transmit(&huart2,(uint8_t*)msg,23,10);
+	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10);
 	
-	//initLARA(&huart3);!
+	// REceive de base
+	HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+	HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff, 50, 10);
+	
+	//initLARA(&huart3);
+	sendAT(&huart3,"AT+CCLK?\r",2,50);
   while (1)
   {
     /* USER CODE END WHILE */
-		//sendAT(&huart3,"AT+CCLK?",2,50);
+		//sendAT(&huart3,"AT+CCLK?\r",2,50);
 		
-		// REceive de base
-		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
 		
-		s = sizeTabChar(com);
 		
+		//s = sizeTabChar(com);
+		/*
 		while (1){
-			HAL_StatusTypeDef retour = HAL_UART_Transmit(&huart3,(uint8_t*)com,5,10);
+			HAL_StatusTypeDef retour = HAL_UART_Transmit(&huart3,(uint8_t*)com,10,10);
+			HAL_Delay(100);
 			HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
 			HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-		}
-			
+			HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+			HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
+			HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+			HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
+			HAL_Delay(1000);
+		}*/
+			/*
 		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
 		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
 		
 		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
 		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
 		
-		HAL_Delay(1000);
+		HAL_Delay(1000);*/
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -281,7 +293,24 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void config_initial(void){
+	GPIO_InitTypeDef maLED;
+	
+	/* Activation des modules GPIO */
+	__HAL_RCC_GPIOE_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	
+	/* Initialisation des LEDs */
+	maLED.Pin = GPIO_PIN_10;
+	maLED.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(GPIOE, &maLED);
+	
+	maLED.Pin = GPIO_PIN_12;
+	HAL_GPIO_Init(GPIOB, &maLED);
 
+	HAL_GPIO_WritePin(GPIOE,GPIO_PIN_10,GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+}
 /* USER CODE END 4 */
 
 /**

@@ -11,21 +11,29 @@ int sizeTabChar(char * s){
 
 void sendAT(UART_HandleTypeDef* huart, char command[], int nbRep, int taille_max){
 	char rxBuff[taille_max];
+	char buff[taille_max];
+	int s = sizeTabChar(command);
 
 	if (nbRep < 0)
 		return;
 	//logiquement pas besoin -----
-	HAL_UART_Transmit(&huart2,(uint8_t*)command,sizeTabChar(command),10);
+	//HAL_UART_Transmit(&huart2,(uint8_t*)command,sizeTabChar(command),10);
 	// -----
 	
-	HAL_UART_Transmit(huart,(uint8_t*)command,sizeTabChar(command),10);
+	//vidage buffer
+	HAL_UART_Receive(huart, (uint8_t*)buff,taille_max,1);
+	HAL_Delay(50);
+	
+	HAL_UART_Transmit(huart,(uint8_t*)command,s,10);
 	uartEndLine(&huart2);
 	
 	for(int nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
 		HAL_UART_Receive(huart, (uint8_t*)rxBuff,taille_max,1000);
 		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,taille_max,10);
-		uartEndLine(&huart2);
+		rxBuff[0] = '.';
+		
 	}
+	uartEndLine(&huart2);
 }
 
 void uartEndLine(UART_HandleTypeDef *huart){
