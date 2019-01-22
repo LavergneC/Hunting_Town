@@ -184,7 +184,6 @@
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
             <RvdsVP>2</RvdsVP>
-            <RvdsMve>0</RvdsMve>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -406,6 +405,16 @@
               <FileName>stm32f4xx_hal_msp.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
+            </File>
+            <File>
+              <FileName>AT_command.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AT_command.h</FilePath>
+            </File>
+            <File>
+              <FileName>AT_command.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\AT_command.c</FilePath>
             </File>
           </Files>
         </Group>

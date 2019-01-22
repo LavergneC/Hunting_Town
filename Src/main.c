@@ -40,6 +40,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "..\MDK-ARM\AT_command.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -93,6 +94,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	char msg[] = "Debut Transmission : \n";
+	int s;
 	//char clock[] = "AT+CCLK?\r";
   /* USER CODE END 1 */
 
@@ -100,7 +102,8 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
+  char *rxBuff[50];
+	char *com = "AT\r\n";
   /* USER CODE BEGIN Init */
   /* USER CODE END Init */
   /* Configure the system clock */
@@ -117,10 +120,31 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,23,10);
 	
+	//initLARA(&huart3);!
   while (1)
   {
     /* USER CODE END WHILE */
-
+		//sendAT(&huart3,"AT+CCLK?",2,50);
+		
+		// REceive de base
+		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
+		
+		s = sizeTabChar(com);
+		
+		while (1){
+			HAL_StatusTypeDef retour = HAL_UART_Transmit(&huart3,(uint8_t*)com,5,10);
+			HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+			HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
+		}
+			
+		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
+		
+		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
+		
+		HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
