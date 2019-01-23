@@ -66,7 +66,7 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-
+char rxBuffer[100];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,7 +101,7 @@ int main(void)
 	
   /* USER CODE BEGIN Init */
 	config_GPIO();
-	
+	HAL_UART_Receive_IT(&huart3, (uint8_t *)rxBuffer, 10);
   /* USER CODE END Init */
 	
   /* Configure the system clock */
@@ -279,6 +279,15 @@ void config_GPIO(void){
 
 	HAL_GPIO_WritePin(GPIOE,GPIO_PIN_10,GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+  
+	HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,sizeTabChar(rxBuffer),10);
+	
 }
 /* USER CODE END 4 */
 
