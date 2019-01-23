@@ -21,20 +21,16 @@ void sendAT(UART_HandleTypeDef* huart, char command[], int nbRep, int taille_max
 	// -----
 	
 	//vidage buffer
-	/*HAL_UART_Receive(huart, (uint8_t*)buff,taille_max,10);
-	HAL_Delay(50);*/
+	HAL_UART_Receive(huart, (uint8_t*)buff,taille_max,10);
+	HAL_Delay(50);
 	
 	HAL_UART_Transmit(huart,(uint8_t*)command,s,10);
-	//uartEndLine(&huart2);
 	
 	for(uint8_t nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
 		memset(rxBuff, 0x00, taille_max);
-		//uint8_t *cpt=(uint8_t*)"===\n";
 		HAL_UART_Receive(huart, (uint8_t*)rxBuff, taille_max,500);
-		//HAL_UART_Transmit(&huart2,(uint8_t*)cpt,4,10);
 		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,taille_max,10);
 	}
-	//uartEndLine(&huart2);
 }
 
 void uartEndLine(UART_HandleTypeDef *huart){
@@ -50,9 +46,8 @@ void initLARA(UART_HandleTypeDef *huart){
 	int num_commande;
 	
 	// Code Pin
-	//AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);https://www.u-blox.com/sites/default/files/AT-CommandsExamples_AppNote_%28UBX-13001820%29.pdf#%5B%7B%22num%22%3A55%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C51%2C712%2C0%5D
-	AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);
-	initsCommands[0] = monAT;
+	//AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);
+	initsCommands[0] = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);
 	
 	initsCommands[1] = init_AT_command(1,"AT+CPIN?\r", 50);
 	
@@ -66,7 +61,7 @@ void initLARA(UART_HandleTypeDef *huart){
 }
 
 void initConnectionHTTP(UART_HandleTypeDef *huart){
-	int nbCommand = 7;
+	int nbCommand = 8;
 	AT_command initsCommands[nbCommand];
 	
 	/* Config réseau */
@@ -74,7 +69,7 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 	// Automatic network registration
 	initsCommands[0] = init_AT_command(1, "AT+COPS=0\r", 50);
 	
-	// On active le contexte PDP
+	// On active le contexte PDP --> connection à l'internet
 	initsCommands[1] = init_AT_command(1, "AT+UPSDA=0,3\r", 50);
 	
 	/* Gestion de l'HTTP */
@@ -91,7 +86,9 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 	// Résolution DNS à partir du nom du serveur
 	initsCommands[5] = init_AT_command(1, "AT+UDNSRN=0,\"ptsv2.com\"\r", 80);
 	
-	initsCommands[6] = init_AT_command(1, "AT+UHTTPC=0,1,\"/t/1rkkv-1548235048/post\",\"filename\"", 150);
+	initsCommands[6] = init_AT_command(2, "AT+UHTTPC=0,1,\"/t/1rkkv-1548235048/post\",\"filename\"\r", 150);
+	
+	initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100);
 	
 	for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
 		AT_command currentAT = initsCommands[num_commande];
