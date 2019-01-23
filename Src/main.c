@@ -115,6 +115,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+	//__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
 	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 5);
 	HAL_Delay(100);
 	
@@ -127,8 +128,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,10,10);
-//		HAL_Delay(500);
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
+		HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -290,7 +291,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
-
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 5);
 	HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
 	for(int i = 0; i<5; i++)
 			rxBuffer[i] = 0x00;
