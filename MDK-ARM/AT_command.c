@@ -21,17 +21,18 @@ void sendAT(UART_HandleTypeDef* huart, char command[], int nbRep, int taille_max
 	// -----
 	
 	//vidage buffer
-	HAL_UART_Receive(huart, (uint8_t*)buff,taille_max,10);
-	HAL_Delay(50);
+	/*HAL_UART_Receive(huart, (uint8_t*)buff,taille_max,10);
+	HAL_Delay(50);*/
 	
 	HAL_UART_Transmit(huart,(uint8_t*)command,s,10);
 	//uartEndLine(&huart2);
 	
-	for(int nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
+	for(uint8_t nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
 		memset(rxBuff, 0x00, taille_max);
-		HAL_UART_Receive(huart, (uint8_t*)rxBuff,taille_max,1000);
+		//uint8_t *cpt=(uint8_t*)"===\n";
+		HAL_UART_Receive(huart, (uint8_t*)rxBuff, taille_max,500);
+		//HAL_UART_Transmit(&huart2,(uint8_t*)cpt,4,10);
 		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,taille_max,10);
-		HAL_Delay(25);
 	}
 	//uartEndLine(&huart2);
 }
@@ -49,7 +50,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	int num_commande;
 	
 	// Code Pin
-	//AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);
+	//AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);https://www.u-blox.com/sites/default/files/AT-CommandsExamples_AppNote_%28UBX-13001820%29.pdf#%5B%7B%22num%22%3A55%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C51%2C712%2C0%5D
 	AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);
 	initsCommands[0] = monAT;
 	
@@ -90,11 +91,12 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 	// Résolution DNS à partir du nom du serveur
 	initsCommands[5] = init_AT_command(1, "AT+UDNSRN=0,\"ptsv2.com\"\r", 80);
 	
-	initsCommands[6] = init_AT_command(2, "AT+UHTTPC=0,1,\"/t/1rkkv-1548235048/post\",\"filename\"", 100);
+	initsCommands[6] = init_AT_command(1, "AT+UHTTPC=0,1,\"/t/1rkkv-1548235048/post\",\"filename\"", 150);
 	
 	for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
 		AT_command currentAT = initsCommands[num_commande];
 		sendAT(huart, currentAT.command, currentAT.nombre_reponses, currentAT.taille_max_reponses);
+		HAL_Delay(35);
 	}
 }
 
@@ -105,3 +107,11 @@ AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_r
 	mon_AT.taille_max_reponses=taille_max_reponses;
 	return mon_AT;
 }
+
+/*void RX_interruption(){
+	if(flag){
+			switch(etat){
+				case 
+			}
+	}
+}*/
