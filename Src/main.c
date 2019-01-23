@@ -40,12 +40,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "..\MDK-ARM\AT_command.h"
-
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "..\MDK-ARM\AT_command.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -78,7 +76,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
-void config_initial(void);
+void config_GPIO(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -90,75 +88,44 @@ void config_initial(void);
   * @brief  The application entry point.
   * @retval int
   */
-	
-	
 int main(void)
 {
   /* USER CODE BEGIN 1 */
 	char msg[] = "\nDebut Transmission : \n";
-	//int s;
-	//char clock[] = "AT+CCLK?\r";
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-  char rxBuff[50];
-	rxBuff[0] = 0x2E;
-	char *com = "AT+CCLK?\r";
-	config_initial();
+	
   /* USER CODE BEGIN Init */
+	config_GPIO();
+	
   /* USER CODE END Init */
+	
   /* Configure the system clock */
   SystemClock_Config();
+
   /* USER CODE BEGIN SysInit */
   /* USER CODE END SysInit */
+
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
+	
   /* USER CODE BEGIN 2 */
-  /* USER CODE END 2 */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10);
-	
-	// REceive de base
-	HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-	HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff, 50, 10);
-	
+	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
 	initLARA(&huart3);
 	initConnectionHTTP(&huart3);
-	//sendAT(&huart3,"AT+CPIN=\"0264\"\r",1,50);
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
     /* USER CODE END WHILE */
-		//sendAT(&huart3,"AT+CCLK?\r",2,50);
-		
-		
-		
-		//s = sizeTabChar(com);
-		/*
-		while (1){
-			HAL_StatusTypeDef retour = HAL_UART_Transmit(&huart3,(uint8_t*)com,10,10);
-			HAL_Delay(100);
-			HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-			HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-			HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-			HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-			HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-			HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-			HAL_Delay(1000);
-		}*/
-			/*
-		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-		
-		HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,50,10);
-		
-		HAL_Delay(1000);*/
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -295,7 +262,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void config_initial(void){
+void config_GPIO(void){
 	GPIO_InitTypeDef maLED;
 	
 	/* Activation des modules GPIO */
