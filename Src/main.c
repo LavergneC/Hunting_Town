@@ -43,6 +43,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stm32f4xx_hal.h"
 #include "..\MDK-ARM\AT_command.h"
 /* USER CODE END Includes */
 
@@ -66,7 +67,7 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-char rxBuffer[10] = {'a'};
+char rxBuffer[5];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -114,7 +115,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 10);
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 5);
 	HAL_Delay(100);
 	
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
@@ -126,8 +127,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,10,10);
-		HAL_Delay(500);
+//		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,10,10);
+//		HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -290,9 +291,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
 
-	HAL_UART_Transmit(&huart2,(uint8_t*)"AA",3,10);
-	HAL_Delay(100);
-	
+	HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
+	for(int i = 0; i<5; i++)
+			rxBuffer[i] = 0x00;
 }
 /* USER CODE END 4 */
 
@@ -307,6 +308,8 @@ void Error_Handler(void)
 	while (1){
 		HAL_UART_Transmit(&huart2,(uint8_t*)"Err_Hand l-306",15,1);
 		HAL_Delay(1000);
+		
+		
 	}
   /* USER CODE END Error_Handler_Debug */
 }
