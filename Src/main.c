@@ -42,6 +42,7 @@
 #include "main.h"
 #include "..\MDK-ARM\AT_command.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -127,8 +128,9 @@ int main(void)
 	HAL_UART_Receive(&huart3, (uint8_t*)rxBuff,50,1000);
 	HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff, 50, 10);
 	
-	//initLARA(&huart3);
-	sendAT(&huart3,"AT+CCLK?\r",2,50);
+	initLARA(&huart3);
+	initConnectionHTTP(&huart3);
+	//sendAT(&huart3,"AT+CPIN=\"0264\"\r",1,50);
   while (1)
   {
     /* USER CODE END WHILE */
