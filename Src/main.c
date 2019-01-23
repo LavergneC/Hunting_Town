@@ -43,6 +43,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stm32f4xx_hal.h"
 #include "..\MDK-ARM\AT_command.h"
 /* USER CODE END Includes */
 
@@ -66,7 +67,7 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-
+char rxBuffer[5];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,12 +99,11 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-	
+
   /* USER CODE BEGIN Init */
 	config_GPIO();
-	
   /* USER CODE END Init */
-	
+
   /* Configure the system clock */
   SystemClock_Config();
 
@@ -114,18 +114,24 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-	
   /* USER CODE BEGIN 2 */
+	//__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 5);
+	HAL_Delay(100);
+	
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
-	initLARA(&huart3);
-	initConnectionHTTP(&huart3);
+	//initLARA(&huart3);
+	//initConnectionHTTP(&huart3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
+		HAL_Delay(500);
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -280,6 +286,16 @@ void config_GPIO(void){
 	HAL_GPIO_WritePin(GPIOE,GPIO_PIN_10,GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
 }
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 5);
+	HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
+	for(int i = 0; i<5; i++)
+			rxBuffer[i] = 0x00;
+}
 /* USER CODE END 4 */
 
 /**
@@ -290,7 +306,12 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+	while (1){
+		HAL_UART_Transmit(&huart2,(uint8_t*)"Err_Hand l-306",15,1);
+		HAL_Delay(1000);
+		
+		
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 
