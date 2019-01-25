@@ -2,10 +2,13 @@
 #include <string.h>
 
 
+typedef enum {type1, type2, type3}Type;
+
 typedef struct {
 	int nombre_reponses;
 	char * command;
 	int taille_max_reponses;
+	Type type;
 }AT_command;
 
 int sizeTabChar(char * s);

@@ -115,8 +115,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	//__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 5);
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 1);
 	HAL_Delay(100);
 	
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
@@ -287,14 +286,58 @@ void config_GPIO(void){
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
 }
 
+typedef enum {ECHO, REPONSE, OKouERR}Etat;
+typedef enum {EN_COURS, OK, FAILED}StatusAT;
+StatusAT statusAT = EN_COURS;
+
+AT_command currentAT;
+
+int tabsEquals(char* c1, char* c2);
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 5);
-	HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 1);
+	/*HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
 	for(int i = 0; i<5; i++)
 			rxBuffer[i] = 0x00;
+	*/
+	char staking[30];
+	static int index = 0;
+	char * msg = "COMMANDE : ";
+	static Etat etat = ECHO;
+	
+	staking[index] = rxBuffer[0];
+	if (rxBuffer[0] == '\0'){
+		uartEndLine(&huart2);
+		HAL_UART_Transmit(&huart2,(uint8_t*)msg,12,10);
+		HAL_UART_Transmit(&huart2,(uint8_t*)staking,sizeTabChar(staking),10);
+		uartEndLine(&huart2);
+		
+		switch (etat){
+			case ECHO : 
+				if (currentAT.type == type1){
+					etat = REPONSE;
+				}
+				break;
+			case REPONSE :
+				break;
+		  case OKouERR :
+				if (currentAT.type == type1){
+					if (tabsEquals(staking, "OK"))
+						statusAT = OK;
+					else
+						statusAT = FAILED;
+		}
+		
+		
+		
+		
+		index = 0;
+	}
+	rxBuffer[0] = 0x00;
+	index ++;
 }
 /* USER CODE END 4 */
 
