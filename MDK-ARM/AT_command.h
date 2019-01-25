@@ -9,6 +9,7 @@ typedef struct {
 	char * command;
 	int taille_max_reponses;
 	Type type;
+	unsigned int temps_reponse; // en ms
 }AT_command;
 
 int sizeTabChar(char * s);

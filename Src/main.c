@@ -119,8 +119,8 @@ int main(void)
 	HAL_Delay(100);
 	
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
-	//initLARA(&huart3);
-	//initConnectionHTTP(&huart3);
+	initLARA(&huart3);
+	initConnectionHTTP(&huart3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
