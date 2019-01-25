@@ -417,6 +417,16 @@
               <FileType>1</FileType>
               <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
             </File>
+            <File>
+              <FileName>fonctions_char.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\fonctions_char.c</FilePath>
+            </File>
+            <File>
+              <FileName>fonctions_char.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\fonctions_char.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

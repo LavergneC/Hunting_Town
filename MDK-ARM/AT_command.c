@@ -1,6 +1,9 @@
 #include "AT_command.h"
 
 extern UART_HandleTypeDef huart2;
+extern char rxBuffer[RX_BUFFER_SIZE];
+extern AT_command currentAT;
+extern StatusAT statusAT;
 
 int sizeTabChar(char * s){
 	int lenght = 0;
@@ -9,28 +12,32 @@ int sizeTabChar(char * s){
 	return lenght;
 }
 
-void sendAT(UART_HandleTypeDef* huart, char command[], int nbRep, int taille_max){
-	char rxBuff[taille_max];
-	char buff[taille_max];
-	int s = sizeTabChar(command);
+void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
+	char buff[at_command.taille_max_reponses];
+	int time_out = 10;
+	int count_time_out = 0;
 
-	if (nbRep < 0)
+	if (at_command.nombre_reponses < 0)
 		return;
-	//logiquement pas besoin -----
-	//HAL_UART_Transmit(&huart2,(uint8_t*)command,sizeTabChar(command),10);
-	// -----
 	
 	//vidage buffer
-	HAL_UART_Receive(huart, (uint8_t*)buff,taille_max,10);
+	HAL_UART_Receive(huart, (uint8_t*)buff,at_command.taille_max_reponses,10);
 	HAL_Delay(50);
+	//-----
 	
-	HAL_UART_Transmit(huart,(uint8_t*)command,s,10);
+	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 	
-	for(uint8_t nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
-		memset(rxBuff, 0x00, taille_max);
-		HAL_UART_Receive(huart, (uint8_t*)rxBuff, taille_max,500);
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,taille_max,10);
-	}
+	//while (statusAT != OK && count_time_out < time_out){
+		HAL_UART_Transmit(huart,(uint8_t*)at_command.command,sizeTabChar(at_command.command),10);
+	//	HAL_Delay(1000);
+	//	count_time_out++;
+	//}
+	
+//	for(uint8_t nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
+//		memset(rxBuff, 0x00, taille_max);
+//		HAL_UART_Receive(huart, (uint8_t*)rxBuff, taille_max,500);
+//		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuff,taille_max,10);
+//	}
 }
 
 void uartEndLine(UART_HandleTypeDef *huart){
@@ -56,7 +63,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	
 	for(num_commande = 0; num_commande < nbCommand; num_commande++){
 		AT_command currentAT = initsCommands[num_commande];
-		sendAT(huart, currentAT.command, currentAT.nombre_reponses, currentAT.taille_max_reponses);
+		sendAT(huart, currentAT);
 	}
 }
 
@@ -92,7 +99,7 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 	
 	for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
 		AT_command currentAT = initsCommands[num_commande];
-		sendAT(huart, currentAT.command, currentAT.nombre_reponses, currentAT.taille_max_reponses);
+		sendAT(huart, currentAT);
 		HAL_Delay(35);
 	}
 }
@@ -102,6 +109,9 @@ AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_r
 	mon_AT.command = command;
 	mon_AT.nombre_reponses=nombre_reponses;
 	mon_AT.taille_max_reponses=taille_max_reponses;
+	// TRES PROVISOIRE ! ! !
+	mon_AT.type = type1;
+	//-----
 	return mon_AT;
 }
 

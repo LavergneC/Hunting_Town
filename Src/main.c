@@ -45,6 +45,7 @@
 /* USER CODE BEGIN Includes */
 #include "stm32f4xx_hal.h"
 #include "..\MDK-ARM\AT_command.h"
+#include "..\MDK-ARM\fonctions_char.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,7 +55,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define RX_BUFFER_SIZE 50
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -67,7 +68,7 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-char rxBuffer[5];
+char rxBuffer[1];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -115,20 +116,17 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 1);
-	HAL_Delay(100);
-	
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
-	initLARA(&huart3);
-	initConnectionHTTP(&huart3);
+	//initLARA(&huart3);
+	//initConnectionHTTP(&huart3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
+	sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
+	sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
-		HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -286,58 +284,60 @@ void config_GPIO(void){
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
 }
 
-typedef enum {ECHO, REPONSE, OKouERR}Etat;
-typedef enum {EN_COURS, OK, FAILED}StatusAT;
 StatusAT statusAT = EN_COURS;
 
 AT_command currentAT;
 
-int tabsEquals(char* c1, char* c2);
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)rxBuffer, 1);
+	/* A AJOUTER
+	if (huart->Instance != USART3){
+		int ww=1;
+		ww++;
+		return;
+	}*/
 	/*HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
 	for(int i = 0; i<5; i++)
 			rxBuffer[i] = 0x00;
 	*/
-	char staking[30];
+	static char staking[RX_BUFFER_SIZE];
 	static int index = 0;
-	char * msg = "COMMANDE : ";
 	static Etat etat = ECHO;
 	
 	staking[index] = rxBuffer[0];
-	if (rxBuffer[0] == '\0'){
-		uartEndLine(&huart2);
-		HAL_UART_Transmit(&huart2,(uint8_t*)msg,12,10);
+	index++;
+	
+	if (staking[0] == '\r' && rxBuffer[0] == '\r'){
+		staking[0] = 0x00;
+		index = 0;
+	}
+	else if (rxBuffer[0] == '\r'){
+		//uartEndLine(&huart2);
 		HAL_UART_Transmit(&huart2,(uint8_t*)staking,sizeTabChar(staking),10);
-		uartEndLine(&huart2);
-		
 		switch (etat){
 			case ECHO : 
-				if (currentAT.type == type1){
+				if (currentAT.type == type1)
 					etat = REPONSE;
-				}
 				break;
 			case REPONSE :
+				etat = OKouERR;
 				break;
 		  case OKouERR :
 				if (currentAT.type == type1){
 					if (tabsEquals(staking, "OK"))
-						statusAT = OK;
+						statusAT = OK;  
 					else
 						statusAT = FAILED;
+				}
+				etat = ECHO;
 		}
-		
-		
-		
-		
 		index = 0;
+		for(int index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
+			staking[index_tab] = 0x00;
 	}
 	rxBuffer[0] = 0x00;
-	index ++;
+	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 }
 /* USER CODE END 4 */
 
