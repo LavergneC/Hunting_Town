@@ -6,6 +6,8 @@ typedef struct {
 	int nombre_reponses;
 	char * command;
 	int taille_max_reponses;
+	unsigned int temps_reponse; // en ms
+	
 }AT_command;
 
 int sizeTabChar(char * s);

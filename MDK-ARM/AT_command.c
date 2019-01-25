@@ -86,7 +86,7 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 	// Résolution DNS à partir du nom du serveur
 	initsCommands[5] = init_AT_command(1, "AT+UDNSRN=0,\"ptsv2.com\"\r", 80);
 	
-	initsCommands[6] = init_AT_command(2, "AT+UHTTPC=0,1,\"/t/1rkkv-1548235048/post\",\"filename\"\r", 150);
+	initsCommands[6] = init_AT_command(2, "AT+UHTTPC=0,1,\"/t/cn00t-1548418994/post\",\"filename\"\r", 150);
 	
 	initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100);
 	
