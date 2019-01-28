@@ -123,7 +123,7 @@ int main(void)
 
   /* Infinite loop */
 	sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
-	sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
+	//sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
   /* USER CODE BEGIN WHILE */
   while (1)
   {
@@ -307,8 +307,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	
 	staking[index] = rxBuffer[0];
 	index++;
-	
-	if (staking[0] == '\r' && rxBuffer[0] == '\r'){
+	char saut_de_ligne[5]="\n";
+	if ((staking[0] == '\r' && rxBuffer[0] == '\r') || (staking[0] == '\n' && rxBuffer[0] == '\n')){	// Cas où le premier élément réceptionné est un \r ou un \n
 		staking[0] = 0x00;
 		index = 0;
 	}
@@ -319,18 +319,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			case ECHO : 
 				if (currentAT.type == type1)
 					etat = REPONSE;
+				else if (currentAT.type == type2)
+					etat = OKouERR;
+				//HAL_UART_Transmit(&huart2,(uint8_t*)"<-- ECHO \n",10,10);
 				break;
 			case REPONSE :
 				etat = OKouERR;
+				//HAL_UART_Transmit(&huart2,(uint8_t*)"<-- REPONSE \n",13,10);
 				break;
 		  case OKouERR :
-				if (currentAT.type == type1){
+				/*if (currentAT.type == type1){
 					if (tabsEquals(staking, "OK"))
 						statusAT = OK;  
 					else
 						statusAT = FAILED;
-				}
+				}*/
 				etat = ECHO;
+				HAL_UART_Transmit(&huart2,(uint8_t*)"<-- OKouERR \n",13,10);
 		}
 		index = 0;
 		for(int index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?

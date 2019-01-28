@@ -11,3 +11,20 @@ uint8_t tabsEquals(char* buffer, char* exp_answer){
 	}
 	return 1;
 }
+
+char** split_trame(char* trame, unsigned int size){
+	uint8_t cptBuffer=0, uint8_t cpt = 0;
+	char** buffer;
+	for(int i=0 ; i<size ; i++){
+		if(trame[i] == '\r' || trame[i] == '\n'){
+			if(cpt != 0){
+				cptBuffer+=1;
+			}
+		}
+		else{
+			buffer[cptBuffer][cpt] = trame[i];
+			cpt+=1;
+		}
+	}
+	return buffer;
+}
