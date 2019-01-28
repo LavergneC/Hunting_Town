@@ -3,7 +3,13 @@
 
 #define RX_BUFFER_SIZE 70
 
-typedef enum {type1, type2, type3}Type;
+/*
+Type :
+	RI -> Réponse à ignorer qui sera juste affichée
+	OE -> Réponse doit affiher OK, à tester pour mettre à jour le statusAT
+*/
+typedef enum {AT_RI_OE, type2, type3}Type;
+
 typedef enum {ECHO, REPONSE, OKouERR}Etat;
 typedef enum {EN_COURS, OK, FAILED}StatusAT;
 

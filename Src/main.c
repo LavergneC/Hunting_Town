@@ -44,7 +44,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f4xx_hal.h"
-#include "..\MDK-ARM\AT_command.h"
 #include "..\MDK-ARM\fonctions_char.h"
 /* USER CODE END Includes */
 
@@ -117,8 +116,8 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
-	//initLARA(&huart3);
-	//initConnectionHTTP(&huart3);
+	initLARA(&huart3);
+	initConnectionHTTP(&huart3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -303,15 +302,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	
 	//test fin des reponses
 	if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O')){
-		char reponses[3][40];
+		char reponses[currentAT.nombre_reponses][40];
 	
 		split_trame(staking,index+1, reponses);
-		if (currentAT.type == type1){
+		if (currentAT.type == AT_RI_OE){
 			for(int i = 0; i < 3; i++){
 				HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
 				uartEndLine(&huart2);
 			}
-			if (tabsEquals(reponses[2],"OK\0"))
+			if (tabsEquals(reponses[currentAT.nombre_reponses-1],"OK\0"))
 				statusAT = OK;
 			else
 				statusAT = FAILED;

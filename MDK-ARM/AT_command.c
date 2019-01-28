@@ -27,11 +27,11 @@ void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
 	
 	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 	
-	//while (statusAT != OK && count_time_out < time_out){
+	while (statusAT != OK && count_time_out < time_out){
 		HAL_UART_Transmit(huart,(uint8_t*)at_command.command,sizeTabChar(at_command.command),10);
-	//	HAL_Delay(1000);
-	//	count_time_out++;
-	//}
+		HAL_Delay(250);
+		count_time_out++;
+	}
 	
 //	for(uint8_t nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
 //		memset(rxBuff, 0x00, taille_max);
@@ -62,7 +62,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	initsCommands[2] = init_AT_command(1,"AT+CFUN=1\r", 50);
 	
 	for(num_commande = 0; num_commande < nbCommand; num_commande++){
-		AT_command currentAT = initsCommands[num_commande];
+		currentAT = initsCommands[num_commande];
 		sendAT(huart, currentAT);
 	}
 }
@@ -98,7 +98,7 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 	initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100);
 	
 	for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
-		AT_command currentAT = initsCommands[num_commande];
+		currentAT = initsCommands[num_commande];
 		sendAT(huart, currentAT);
 		HAL_Delay(35);
 	}
@@ -110,7 +110,7 @@ AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_r
 	mon_AT.nombre_reponses=nombre_reponses;
 	mon_AT.taille_max_reponses=taille_max_reponses;
 	// TRES PROVISOIRE ! ! !
-	mon_AT.type = type1;
+	mon_AT.type = AT_RI_OE;
 	//-----
 	return mon_AT;
 }
