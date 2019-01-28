@@ -287,7 +287,6 @@ void config_GPIO(void){
 StatusAT statusAT = EN_COURS;
 
 AT_command currentAT;
-char ** split_trame(char*tram, unsigned int size);
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   /* Prevent unused argument(s) compilation warning */
@@ -304,12 +303,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	
 	//test fin des reponses
 	if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O')){
-		char ** reponses;
+		char reponses[3][40];
 	
-		reponses = split_trame(staking,index);
+		split_trame(staking,index+1, reponses);
 		if (currentAT.type == type1){
-			for(int i = 0; i < 3; i++)
+			for(int i = 0; i < 3; i++){
 				HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
+				uartEndLine(&huart2);
+			}
 			if (tabsEquals(reponses[2],"OK\0"))
 				statusAT = OK;
 			else
