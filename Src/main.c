@@ -314,7 +314,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				statusAT = OK;
 			else
 				statusAT = FAILED;
-			
 		}
 	  //reset---
 		for(int index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
