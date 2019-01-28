@@ -13,7 +13,7 @@ uint8_t tabsEquals(char* buffer, char* exp_answer){
 }
 
 char** split_trame(char* trame, unsigned int size){
-	uint8_t cptBuffer=0, uint8_t cpt = 0;
+	uint8_t cptBuffer=0, cpt = 0;
 	char** buffer;
 	for(int i=0 ; i<size ; i++){
 		if(trame[i] == '\r' || trame[i] == '\n'){
