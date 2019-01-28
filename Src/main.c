@@ -123,7 +123,7 @@ int main(void)
 
   /* Infinite loop */
 	sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
-	sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
+	//sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
   /* USER CODE BEGIN WHILE */
   while (1)
   {
@@ -287,55 +287,43 @@ void config_GPIO(void){
 StatusAT statusAT = EN_COURS;
 
 AT_command currentAT;
+char ** split_trame(char*tram, unsigned int size);
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
 	/* A AJOUTER
 	if (huart->Instance != USART3){
-		int ww=1;
-		ww++;
 		return;
 	}*/
-	/*HAL_UART_Transmit(&huart2,(uint8_t*)rxBuffer,5,10);
-	for(int i = 0; i<5; i++)
-			rxBuffer[i] = 0x00;
-	*/
 	static char staking[RX_BUFFER_SIZE];
-	static int index = 0;
-	static Etat etat = ECHO;
+	static unsigned int index = 0;
+	
 	
 	staking[index] = rxBuffer[0];
-	index++;
 	
-	if (staking[0] == '\r' && rxBuffer[0] == '\r'){
-		staking[0] = 0x00;
-		index = 0;
-	}
-	else if (rxBuffer[0] == '\r'){
-		//uartEndLine(&huart2);
-		HAL_UART_Transmit(&huart2,(uint8_t*)staking,sizeTabChar(staking),10);
-		switch (etat){
-			case ECHO : 
-				if (currentAT.type == type1)
-					etat = REPONSE;
-				break;
-			case REPONSE :
-				etat = OKouERR;
-				break;
-		  case OKouERR :
-				if (currentAT.type == type1){
-					if (tabsEquals(staking, "OK"))
-						statusAT = OK;  
-					else
-						statusAT = FAILED;
-				}
-				etat = ECHO;
+	//test fin des reponses
+	if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O')){
+		char ** reponses;
+	
+		reponses = split_trame(staking,index);
+		if (currentAT.type == type1){
+			for(int i = 0; i < 3; i++)
+				HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
+			if (tabsEquals(reponses[2],"OK\0"))
+				statusAT = OK;
+			else
+				statusAT = FAILED;
+			
 		}
-		index = 0;
+	  //reset---
 		for(int index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
 			staking[index_tab] = 0x00;
+		index = 0;
+	  //-------	
 	}
+	
+	index++;
 	rxBuffer[0] = 0x00;
 	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 }

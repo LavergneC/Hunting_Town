@@ -1,7 +1,7 @@
 #include <stm32f4xx_hal.h>
 #include <string.h>
 
-#define RX_BUFFER_SIZE 50
+#define RX_BUFFER_SIZE 70
 
 typedef enum {type1, type2, type3}Type;
 typedef enum {ECHO, REPONSE, OKouERR}Etat;
