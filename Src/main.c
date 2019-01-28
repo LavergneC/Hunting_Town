@@ -121,7 +121,7 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Infinite loop */
-	sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
+	//sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
 	//sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -303,19 +303,38 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	//test fin des reponses
 	if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O')){
 		char reponses[currentAT.nombre_reponses][40];
+		volatile unsigned int nb_reponse = currentAT.nombre_reponses;
 	
-		split_trame(staking,index+1, reponses);
+		/* récupération des réponses dans des buffers spécifiques */
+		uint8_t cptBuffer=0, cpt = 0;
+		for(int i=0 ; i<index+1 ; i++){
+			if(staking[i] == '\r' || staking[i] == '\n' || staking[i] == '\0'){
+				if(cpt != 0){
+					reponses[cptBuffer][cpt+1] = '\0';
+					cptBuffer+=1;
+					cpt = 0;
+				}
+			}
+			else{
+				reponses[cptBuffer][cpt] = staking[i];
+				cpt+=1;
+			}
+		}
+		/* FIN */
 		if (currentAT.type == AT_RI_OE){
 			for(int i = 0; i < 3; i++){
 				HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
 				uartEndLine(&huart2);
 			}
-			if (tabsEquals(reponses[currentAT.nombre_reponses-1],"OK\0"))
+			if (tabsEquals(reponses[1],"OK\0"))
 				statusAT = OK;
 			else
 				statusAT = FAILED;
 		}
 	  //reset---
+		for(int index_tab = 0; index_tab < 3; index_tab++) //memset ?
+			for(int new_index = 0 ; new_index < 40 ; new_index++)
+				reponses[index_tab][new_index] = 0x00;
 		for(int index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
 			staking[index_tab] = 0x00;
 		index = 0;
