@@ -290,12 +290,13 @@ AT_command currentAT;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
-
+/*
 	if (huart->Instance != huart3.Instance){
 		return;
-	}
+	}*/
 	static char staking[RX_BUFFER_SIZE];
 	static unsigned int index = 0;
+	char flag_reset_index = 'F';
 	
 	
 	staking[index] = rxBuffer[0];
@@ -308,7 +309,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		/* récupération des réponses dans des buffers spécifiques */
 		uint8_t cptBuffer=0, cpt = 0;
 		for(int i=0 ; i<index+1 ; i++){
-			if(staking[i] == '\r' || staking[i] == '\n' || staking[i] == '\0'){
+			if(staking[i] == '\r' || staking[i] == '\n' || staking[i] == '\0' || staking[i] == 0x0D){
 				if(cpt != 0){
 					reponses[cptBuffer][cpt+1] = '\0';
 					cptBuffer+=1;
@@ -323,50 +324,46 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		/* ---	---	---	---	---	---	---	---		---	---		---	---	*/
 		
 		/* Affichage des réponses */
-		for(int i = 0; i < currentAT.nombre_reponses; i++){
+			for(int i = 0; i < currentAT.nombre_reponses; i++){
 				HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
 				uartEndLine(&huart2);
 		}
 		uartEndLine(&huart2);
 		/* ---	---	---	---	---	---*/
-		switch(currentAT.type){
-			case AT_RI_OE :
-				if (tabsEquals(reponses[2],"OK\0"))
-					statusAT = OK;
-				else
-					statusAT = FAILED;
-				break;
-			case AT_OE : case AT_OE_RI :
-				if (tabsEquals(reponses[1],"OK\0"))
-					statusAT = OK;
-				else
-					statusAT = FAILED;
-				break;
-			case AT_C_CPIN :
-				if(reponses[1][7] == 'R')
-					statusAT = OK;
-				else
-					statusAT = FAILED;
-				break;
-			case AT_C_PING : 
-				break;
-			case AT_C_UHTTPC :
-				break;
-			default :	
-				Error_Handler();
+		
+		if (currentAT.type == AT_OE || currentAT.type == AT_OE_RI){
+			if (tabsEquals(reponses[1],"OK\0"))
+				statusAT = OK;
+			else
+				statusAT = FAILED;
+		}
+		else if (currentAT.type == AT_C_CPIN){
+			if (tabsEquals(reponses[1],"+CPIN: READY\0"))
+				statusAT = OK;
+			else
+				statusAT = FAILED;
 		}
 	  //reset---
-		for(int index_tab = 0; index_tab < currentAT.nombre_reponses; index_tab++) //memset ?
-			for(int new_index = 0 ; new_index < 40 ; new_index++)
+		for(int index_tab = 0; index_tab < currentAT.nombre_reponses; index_tab++){ //memset ?
+			for(int new_index = 0 ; new_index < 40 ; new_index++){
 				reponses[index_tab][new_index] = 0x00;
+			}
+		}
 		for(int index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
 			staking[index_tab] = 0x00;
-		index = 0;
+		flag_reset_index = 'T';
 	  //-------	
 	}
 	
 	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
-	index++;
+	
+	if (flag_reset_index == 'T'){
+		flag_reset_index = 'F';
+		index = 0;
+	}
+	else
+		index++;
+		
 	rxBuffer[0] = 0x00;
 	
 }

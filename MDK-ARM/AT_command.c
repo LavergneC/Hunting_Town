@@ -13,15 +13,16 @@ int sizeTabChar(char * s){
 }
 
 void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
-	char buff[at_command.taille_max_reponses];
-	int time_out = 10;
+	char buff[100];
+	int time_out = 3;
 	int count_time_out = 0;
-
+  statusAT = EN_COURS;
+	
 	if (at_command.nombre_reponses < 0)
 		return;
 	
 	//vidage buffer
-	HAL_UART_Receive(huart, (uint8_t*)buff,at_command.taille_max_reponses,10);
+	HAL_UART_Receive(huart, (uint8_t*)buff,100,10);
 	HAL_Delay(50);
 	//-----
 	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
@@ -54,13 +55,13 @@ void initLARA(UART_HandleTypeDef *huart){
 	// Code Pin
 	//AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);
 
-	initsCommands[0] = init_AT_command(3,"AT+CPIN=\"0264\"\r", 50, AT_OE);
+	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"0264\"\r", 50, AT_OE);
 	
 	initsCommands[1] = init_AT_command(3,"AT+CPIN?\r", 50, AT_C_CPIN);
 	
 	// Mode full fonctionnality
 
-	initsCommands[2] = init_AT_command(3,"AT+CFUN=1\r", 50, AT_OE);
+	initsCommands[2] = init_AT_command(2,"AT+CFUN=1\r", 50, AT_OE);
 	
 	for(num_commande = 0; num_commande < nbCommand; num_commande++){
 		currentAT = initsCommands[num_commande];
@@ -75,24 +76,24 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 	/* Config réseau */
 	
 	// Automatic network registration
-	initsCommands[0] = init_AT_command(1, "AT+COPS=0\r", 50, AT_OE);
+	initsCommands[0] = init_AT_command(2, "AT+COPS=0\r", 50, AT_OE);
 	
 	// On active le contexte PDP --> connection à l'internet
-	initsCommands[1] = init_AT_command(1, "AT+UPSDA=0,3\r", 50, AT_OE_RI);
+	initsCommands[1] = init_AT_command(3, "AT+UPSDA=0,3\r", 50, AT_OE_RI);
 	
 	/* Gestion de l'HTTP */
 	
 	// Reset de l'environnement HTTP
-	initsCommands[2] = init_AT_command(1, "AT+UHTTP=0\r", 100, AT_OE);
+	initsCommands[2] = init_AT_command(2, "AT+UHTTP=0\r", 100, AT_OE);
 	
 	// Renseignement du nom du serveur
-	initsCommands[3] = init_AT_command(1, "AT+UHTTP=0,1,\"ptsv2.com\"\r", 50, AT_OE);
+	initsCommands[3] = init_AT_command(2, "AT+UHTTP=0,1,\"ptsv2.com\"\r", 50, AT_OE);
 	
 	// Renseignement du port de communication HTTP
-	initsCommands[4] = init_AT_command(1, "AT+UHTTP=0,5,80\r", 50, AT_OE);
+	initsCommands[4] = init_AT_command(2, "AT+UHTTP=0,5,80\r", 50, AT_OE);
 	
 	// Résolution DNS à partir du nom du serveur
-	initsCommands[5] = init_AT_command(1, "AT+UDNSRN=0,\"ptsv2.com\"\r", 80, AT_OE);
+	initsCommands[5] = init_AT_command(2, "AT+UDNSRN=0,\"ptsv2.com\"\r", 80, AT_OE);
 	
 	initsCommands[6] = init_AT_command(2, "AT+UHTTPC=0,1,\"/t/cn00t-1548418994/post\",\"filename\"\r", 150, AT_C_UHTTPC);
 	
