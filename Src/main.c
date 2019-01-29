@@ -290,10 +290,10 @@ AT_command currentAT;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
-	/* A AJOUTER
-	if (huart->Instance != USART3){
+
+	if (huart->Instance != huart3.Instance){
 		return;
-	}*/
+	}
 	static char staking[RX_BUFFER_SIZE];
 	static unsigned int index = 0;
 	
@@ -320,19 +320,43 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				cpt+=1;
 			}
 		}
-		/* FIN */
-		if (currentAT.type == AT_RI_OE){
-			for(int i = 0; i < 3; i++){
+		/* ---	---	---	---	---	---	---	---		---	---		---	---	*/
+		
+		/* Affichage des réponses */
+		for(int i = 0; i < currentAT.nombre_reponses; i++){
 				HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
 				uartEndLine(&huart2);
-			}
-			if (tabsEquals(reponses[1],"OK\0"))
-				statusAT = OK;
-			else
-				statusAT = FAILED;
+		}
+		uartEndLine(&huart2);
+		/* ---	---	---	---	---	---*/
+		switch(currentAT.type){
+			case AT_RI_OE :
+				if (tabsEquals(reponses[2],"OK\0"))
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+				break;
+			case AT_OE : case AT_OE_RI :
+				if (tabsEquals(reponses[1],"OK\0"))
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+				break;
+			case AT_C_CPIN :
+				if(reponses[1][7] == 'R')
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+				break;
+			case AT_C_PING : 
+				break;
+			case AT_C_UHTTPC :
+				break;
+			default :	
+				Error_Handler();
 		}
 	  //reset---
-		for(int index_tab = 0; index_tab < 3; index_tab++) //memset ?
+		for(int index_tab = 0; index_tab < currentAT.nombre_reponses; index_tab++) //memset ?
 			for(int new_index = 0 ; new_index < 40 ; new_index++)
 				reponses[index_tab][new_index] = 0x00;
 		for(int index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
@@ -341,9 +365,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	  //-------	
 	}
 	
+	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 	index++;
 	rxBuffer[0] = 0x00;
-	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
+	
 }
 /* USER CODE END 4 */
 
