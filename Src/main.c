@@ -290,10 +290,14 @@ AT_command currentAT;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
+<<<<<<< HEAD
 /*
+=======
+
+>>>>>>> refs/remotes/origin/4G
 	if (huart->Instance != huart3.Instance){
 		return;
-	}*/
+	}
 	static char staking[RX_BUFFER_SIZE];
 	static unsigned int index = 0;
 	char flag_reset_index = 'F';
@@ -324,18 +328,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		/* ---	---	---	---	---	---	---	---		---	---		---	---	*/
 		
 		/* Affichage des réponses */
-			for(int i = 0; i < currentAT.nombre_reponses; i++){
+
+		for(int i = 0; i < currentAT.nombre_reponses; i++){
 				HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
 				uartEndLine(&huart2);
 		}
 		uartEndLine(&huart2);
 		/* ---	---	---	---	---	---*/
-		
 		if (currentAT.type == AT_OE || currentAT.type == AT_OE_RI){
 			if (tabsEquals(reponses[1],"OK\0"))
 				statusAT = OK;
 			else
 				statusAT = FAILED;
+
 		}
 		else if (currentAT.type == AT_C_CPIN){
 			if (tabsEquals(reponses[1],"+CPIN: READY\0"))
@@ -344,6 +349,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				statusAT = FAILED;
 		}
 	  //reset---
+
 		for(int index_tab = 0; index_tab < currentAT.nombre_reponses; index_tab++){ //memset ?
 			for(int new_index = 0 ; new_index < 40 ; new_index++){
 				reponses[index_tab][new_index] = 0x00;
@@ -363,7 +369,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	}
 	else
 		index++;
-		
+
 	rxBuffer[0] = 0x00;
 	
 }

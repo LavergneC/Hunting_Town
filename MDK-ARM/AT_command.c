@@ -112,7 +112,7 @@ AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_r
 	mon_AT.nombre_reponses=nombre_reponses;
 	mon_AT.taille_max_reponses=taille_max_reponses;
 	mon_AT.type = type;
-	
+
 	return mon_AT;
 }
 
