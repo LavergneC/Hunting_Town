@@ -290,11 +290,7 @@ AT_command currentAT;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
-<<<<<<< HEAD
-/*
-=======
 
->>>>>>> refs/remotes/origin/4G
 	if (huart->Instance != huart3.Instance){
 		return;
 	}
@@ -307,7 +303,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	
 	//test fin des reponses
 	if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O')){
-		char reponses[currentAT.nombre_reponses][40];
+		char reponses[currentAT.nombre_reponses][60];
 		volatile unsigned int nb_reponse = currentAT.nombre_reponses;
 	
 		/* récupération des réponses dans des buffers spécifiques */
@@ -334,7 +330,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				uartEndLine(&huart2);
 		}
 		uartEndLine(&huart2);
-		/* ---	---	---	---	---	---*/
+		/* Verification des réponses pour chaque type de commande */
 		if (currentAT.type == AT_OE || currentAT.type == AT_OE_RI){
 			if (tabsEquals(reponses[1],"OK\0"))
 				statusAT = OK;
@@ -342,8 +338,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				statusAT = FAILED;
 
 		}
+		else if (currentAT.type == AT_RI_OE){
+			if(tabsEquals(reponses[2], "OK\0"))
+				statusAT = OK;
+			else
+				statusAT = FAILED;
+		}
 		else if (currentAT.type == AT_C_CPIN){
-			if (tabsEquals(reponses[1],"+CPIN: READY\0"))
+			if (tabsEquals(reponses[1], "+CPIN: READY\0"))
+				statusAT = OK;
+			else
+				statusAT = FAILED;
+		}
+		else if(currentAT.type == AT_C_COPS)
+			statusAT = OK;
+		
+		else if(currentAT.type == AT_C_UHTTPC){
+			if (reponses[2][14] == '1')
 				statusAT = OK;
 			else
 				statusAT = FAILED;
@@ -351,7 +362,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	  //reset---
 
 		for(int index_tab = 0; index_tab < currentAT.nombre_reponses; index_tab++){ //memset ?
-			for(int new_index = 0 ; new_index < 40 ; new_index++){
+			for(int new_index = 0 ; new_index < 60 ; new_index++){
 				reponses[index_tab][new_index] = 0x00;
 			}
 		}
