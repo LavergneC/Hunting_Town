@@ -26,4 +26,4 @@ void sendAT(UART_HandleTypeDef* huart, AT_command at_command);
 void uartEndLine(UART_HandleTypeDef *huart);
 void initLARA(UART_HandleTypeDef *huart);
 AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_reponses, TypeATCommand type, uint32_t temps_reponse);
-void initConnectionHTTP(UART_HandleTypeDef *huart);
+StatusAT initConnectionHTTP(UART_HandleTypeDef *huart);

@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'Gestion 4G' 
+ * Project: 'testUart_2' 
  * Target:  'testUart_2' 
  */
 

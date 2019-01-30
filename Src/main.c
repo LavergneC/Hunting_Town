@@ -93,6 +93,8 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	char msg[] = "\nDebut Transmission : \n";
+	StatusAT initStatus = EN_COURS;
+	int nb_try = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -116,8 +118,21 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
-	initLARA(&huart3);
-	initConnectionHTTP(&huart3);
+	
+	HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Debut Init---\n\n",21,10); 
+	do{
+		if (nb_try != 0)
+			HAL_UART_Transmit(&huart2,(uint8_t*)"\n- Nouvel init...\n\n",20,10); 
+		initLARA(&huart3);
+		initStatus = initConnectionHTTP(&huart3);
+		nb_try++;
+	}while(initStatus == FAILED && nb_try < 5);
+	
+	if(initStatus == FAILED)
+		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init FAILED---\n\n",21,10);
+	else
+		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCESS---\n\n",21,10); 
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -370,8 +385,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			statusAT = OK;
 		
 		else if(currentAT.type == AT_C_UHTTPC){
-			char tested = reponses[2][15];
-			if (tested == '1')
+			if (reponses[2][15] == '1')
 				statusAT = OK;
 			else
 				statusAT = FAILED;

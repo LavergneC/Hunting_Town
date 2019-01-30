@@ -18,13 +18,14 @@ void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
 	int count_time_out = 0;
   statusAT = EN_COURS;
 	
-	if (at_command.nombre_reponses < 0)
-		return;
+	if (at_command.temps_reponse > 999)
+		time_out = 2;
 	
 	//vidage buffer
 	HAL_UART_Receive(huart, (uint8_t*)buff,100,10);
 	HAL_Delay(50);
 	//-----
+	
 	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 	while (statusAT != OK && count_time_out < time_out){
 		HAL_UART_Transmit(huart,(uint8_t*)at_command.command,sizeTabChar(at_command.command),10);
@@ -69,19 +70,20 @@ void initLARA(UART_HandleTypeDef *huart){
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
 		}
+		HAL_Delay(100);
 		nb_init++;
 		if (statusAT == OK)
-			HAL_UART_Transmit(&huart2,(uint8_t*)"--> Init LARA : OK\n\n",21,10);
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init LARA : OK***\n\n",23,10);
 		else
-			HAL_UART_Transmit(&huart2,(uint8_t*)"--> Init LARA : RETRY\n",23,10);
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init LARA : RETRY***\n",25,10);
 	
 	}while(statusAT == FAILED && nb_init < timeout);
 }
 
-void initConnectionHTTP(UART_HandleTypeDef *huart){
+StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	int nbCommand = 7;
 	AT_command initsCommands[nbCommand];
-	int timeout = 20;
+	int timeout_HTTP = 2;
 	int nb_init = 0;
 	
 	/* Config réseau */
@@ -113,18 +115,25 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
-			HAL_Delay(35);
+			HAL_Delay(100);
 		}	
 		if (statusAT == OK)
-			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : OK***\n",22,10);
-		else
-			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : RETRY***\n",22,10);
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : OK***\n\n",23,10);
+		else{
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : RETRY***\n",23,10);
+			uartEndLine(&huart2);
+		}
 			
 		nb_init++;
-	}while(statusAT == FAILED && nb_init < timeout);
+	}while(statusAT == FAILED && nb_init < timeout_HTTP);
 	
-	if (nb_init >= timeout)
+	if (nb_init >= timeout_HTTP){
 		HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : TIMEOUT***\n",27,10);
+		return FAILED;
+	}
+	else
+		return OK;
+		
 }
 
 AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_reponses, TypeATCommand type, uint32_t temps_reponse){
