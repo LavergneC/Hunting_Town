@@ -297,12 +297,28 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	static char staking[RX_BUFFER_SIZE];
 	static unsigned int index = 0;
 	char flag_reset_index = 'F';
+	char flag_end_responce = 0;
+	char forDebugONLY = 'o';
 	
 	
 	staking[index] = rxBuffer[0];
 	
-	//test fin des reponses
-	if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O')){
+	/*test fin des reponses*/
+	if (currentAT.type == AT_C_UHTTPC){
+		if(staking[index-6] == ':'){
+			flag_end_responce = 1;
+			forDebugONLY = 'C';
+		}
+	}
+	else if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O'))
+		flag_end_responce = 1;
+	
+	/*Actions grâce aux réponses*/
+  if (flag_end_responce){
+		/*DEBUG*/
+		rxBuffer[0] = forDebugONLY;
+		/*END DEBUG*/
+		flag_end_responce = 0;
 		char reponses[currentAT.nombre_reponses][60];
 		volatile unsigned int nb_reponse = currentAT.nombre_reponses;
 	
@@ -321,15 +337,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				cpt+=1;
 			}
 		}
-		/* ---	---	---	---	---	---	---	---		---	---		---	---	*/
+	 /* ---	---	---	---	---	---	---	---		---	---		---	---	*/
 		
 		/* Affichage des réponses */
-
 		for(int i = 0; i < currentAT.nombre_reponses; i++){
 				HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
 				uartEndLine(&huart2);
 		}
 		uartEndLine(&huart2);
+		
 		/* Verification des réponses pour chaque type de commande */
 		if (currentAT.type == AT_OE || currentAT.type == AT_OE_RI){
 			if (tabsEquals(reponses[1],"OK\0"))
@@ -354,13 +370,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			statusAT = OK;
 		
 		else if(currentAT.type == AT_C_UHTTPC){
-			if (reponses[2][14] == '1')
+			char tested = reponses[2][15];
+			if (tested == '1')
 				statusAT = OK;
 			else
 				statusAT = FAILED;
 		}
+		
 	  //reset---
-
 		for(int index_tab = 0; index_tab < currentAT.nombre_reponses; index_tab++){ //memset ?
 			for(int new_index = 0 ; new_index < 60 ; new_index++){
 				reponses[index_tab][new_index] = 0x00;

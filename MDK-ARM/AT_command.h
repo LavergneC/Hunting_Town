@@ -1,7 +1,7 @@
 #include <stm32f4xx_hal.h>
 #include <string.h>
 
-#define RX_BUFFER_SIZE 70
+#define RX_BUFFER_SIZE 200
 
 /*
 Type :

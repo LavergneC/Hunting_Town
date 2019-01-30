@@ -14,7 +14,7 @@ int sizeTabChar(char * s){
 
 void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
 	char buff[100];
-	int time_out = 3;
+	int time_out = 5;
 	int count_time_out = 0;
   statusAT = EN_COURS;
 	
@@ -50,6 +50,8 @@ void initLARA(UART_HandleTypeDef *huart){
 	int nbCommand = 3;
 	AT_command initsCommands[nbCommand];
 	int num_commande;
+	int timeout = 20;
+	int nb_init = 0;
 	
 	// Code Pin
 	//AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);
@@ -62,15 +64,25 @@ void initLARA(UART_HandleTypeDef *huart){
 
 	initsCommands[2] = init_AT_command(2,"AT+CFUN=1\r", 50, AT_OE, 250);
 	
-	for(num_commande = 0; num_commande < nbCommand; num_commande++){
-		currentAT = initsCommands[num_commande];
-		sendAT(huart, currentAT);
-	}
+	do{
+		for(num_commande = 0; num_commande < nbCommand; num_commande++){
+			currentAT = initsCommands[num_commande];
+			sendAT(huart, currentAT);
+		}
+		nb_init++;
+		if (statusAT == OK)
+			HAL_UART_Transmit(&huart2,(uint8_t*)"--> Init LARA : OK\n\n",21,10);
+		else
+			HAL_UART_Transmit(&huart2,(uint8_t*)"--> Init LARA : RETRY\n",23,10);
+	
+	}while(statusAT == FAILED && nb_init < timeout);
 }
 
 void initConnectionHTTP(UART_HandleTypeDef *huart){
 	int nbCommand = 7;
 	AT_command initsCommands[nbCommand];
+	int timeout = 20;
+	int nb_init = 0;
 	
 	/* Config réseau */
 	
@@ -94,15 +106,25 @@ void initConnectionHTTP(UART_HandleTypeDef *huart){
 	// Résolution DNS à partir du nom du serveur
 	initsCommands[5] = init_AT_command(3, "AT+UDNSRN=0,\"ptsv2.com\"\r", 80, AT_RI_OE, 2500);
 	
-	initsCommands[6] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/i2h3k-1548778764/post\",\"filename\"\r", 150, AT_C_UHTTPC, 4000);
+	initsCommands[6] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", 150, AT_C_UHTTPC, 4000);
 	
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);
+	do{
+		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
+			currentAT = initsCommands[num_commande];
+			sendAT(huart, currentAT);
+			HAL_Delay(35);
+		}	
+		if (statusAT == OK)
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : OK***\n",22,10);
+		else
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : RETRY***\n",22,10);
+			
+		nb_init++;
+	}while(statusAT == FAILED && nb_init < timeout);
 	
-	for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
-		currentAT = initsCommands[num_commande];
-		sendAT(huart, currentAT);
-		HAL_Delay(35);
-	}
+	if (nb_init >= timeout)
+		HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : TIMEOUT***\n",27,10);
 }
 
 AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_reponses, TypeATCommand type, uint32_t temps_reponse){
