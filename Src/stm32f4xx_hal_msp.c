@@ -134,7 +134,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END USART2_MspInit 1 */
   }
-
   else if(huart->Instance==USART3)
   {
   /* USER CODE BEGIN USART3_MspInit 0 */
@@ -161,7 +160,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
   /* USER CODE BEGIN USART3_MspInit 1 */
 
   /* USER CODE END USART3_MspInit 1 */
-
+  }
   else if(huart->Instance==USART6)
   {
   /* USER CODE BEGIN USART6_MspInit 0 */
@@ -188,7 +187,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
   /* USER CODE BEGIN USART6_MspInit 1 */
 
   /* USER CODE END USART6_MspInit 1 */
-
   }
 
 }
@@ -223,7 +221,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END USART2_MspDeInit 1 */
   }
-<<<<<<< HEAD
   else if(huart->Instance==USART3)
   {
   /* USER CODE BEGIN USART3_MspDeInit 0 */
@@ -243,7 +240,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
   /* USER CODE BEGIN USART3_MspDeInit 1 */
 
   /* USER CODE END USART3_MspDeInit 1 */
-=======
+  }
   else if(huart->Instance==USART6)
   {
   /* USER CODE BEGIN USART6_MspDeInit 0 */
@@ -263,13 +260,11 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
   /* USER CODE BEGIN USART6_MspDeInit 1 */
 
   /* USER CODE END USART6_MspDeInit 1 */
->>>>>>> GPS
   }
 
 }
 
 /* USER CODE BEGIN 1 */
-
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
