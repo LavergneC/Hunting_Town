@@ -43,8 +43,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include "stm32f4xx_hal.h"
 #include "..\MDK-ARM\fonctions_char.h"
+#include <string.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,24 +67,39 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 char rxBuffer[1];
+UART_HandleTypeDef huart6;
+
+/* USER CODE BEGIN PV */
+void initGPS(void);
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
+
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 void config_GPIO(void);
+
+static void MX_USART6_UART_Init(void);
+
+/* USER CODE BEGIN PFP */
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+
+char bufGPS[200];
 
 /* USER CODE END 0 */
 
@@ -92,9 +110,13 @@ void config_GPIO(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+
 	char msg[] = "\nDebut Transmission : \n";
 	StatusAT initStatus = EN_COURS;
 	int nb_try = 0;
+
+
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -104,18 +126,24 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 	config_GPIO();
+	initGPS();
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+
   MX_USART3_UART_Init();
+  MX_USART6_UART_Init();
+	
   /* USER CODE BEGIN 2 */
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
 	
@@ -133,20 +161,38 @@ int main(void)
 	else
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCESS---\n\n",21,10); 
 	
+	HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,200);
   /* USER CODE END 2 */
 
   /* Infinite loop */
 	//sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
 	//sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
   /* USER CODE BEGIN WHILE */
+	
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
+void initGPS(void)
+{
+	
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_SET);//RST=1
+	HAL_Delay(300);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);//RST=0
+		
+	/*Wake up the module*/
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+	HAL_Delay(5000);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_Delay(100);
+}
   /* USER CODE END 3 */
 }
+
 
 /**
   * @brief System Clock Configuration
@@ -220,6 +266,7 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+
   * @brief USART3 Initialization Function
   * @param None
   * @retval None
@@ -250,6 +297,36 @@ static void MX_USART3_UART_Init(void)
 
   /* USER CODE END USART3_Init 2 */
 
+  * @brief USART6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART6_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART6_Init 0 */
+
+  /* USER CODE END USART6_Init 0 */
+
+  /* USER CODE BEGIN USART6_Init 1 */
+
+  /* USER CODE END USART6_Init 1 */
+  huart6.Instance = USART6;
+  huart6.Init.BaudRate = 4800;
+  huart6.Init.WordLength = UART_WORDLENGTH_8B;
+  huart6.Init.StopBits = UART_STOPBITS_1;
+  huart6.Init.Parity = UART_PARITY_NONE;
+  huart6.Init.Mode = UART_MODE_TX_RX;
+  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART6_Init 2 */
+
+  /* USER CODE END USART6_Init 2 */
+
 }
 
 /**
@@ -262,9 +339,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13, GPIO_PIN_RESET);
@@ -276,9 +356,31 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PE4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB1 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+
 }
 
 /* USER CODE BEGIN 4 */
+
 void config_GPIO(void){
 	GPIO_InitTypeDef maLED;
 	
@@ -301,14 +403,11 @@ void config_GPIO(void){
 StatusAT statusAT = EN_COURS;
 
 AT_command currentAT;
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
 
-	if (huart->Instance != huart3.Instance){
-		return;
-	}
+	if (huart->Instance == huart3.Instance){
 	static char staking[RX_BUFFER_SIZE];
 	static unsigned int index = 0;
 	char flag_reset_index = 'F';
@@ -413,8 +512,83 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		index++;
 
 	rxBuffer[0] = 0x00;
+	}
+	else if(huart->Instance == huart6.Instance)
+	{static char trameGlobale[150];
+	static char retourLigne[6];
+	static char heure[6];
+	static char latitude[11];
+	static char longitude[12];
+	
+	static char latitudeConvpartieun[2];
+	static char latitudeConvpartiedeux[6];
+	static char longitudeConvpartieun[3];
+	static char longitudeConvpartiedeux[6];
+	
+	float latitudeFinale;
+	float longitudeFinale;
+	
+	char *l;
+	char *L;
+		
+	
+	
+	retourLigne[0]='\n';
+	static unsigned char index=0;
+	static unsigned char i=0;
+  UNUSED(huart);
+	
+	if (huart->Instance != huart6.Instance){
+		return;
+	}
+	
+	trameGlobale[index]=bufGPS[0];
+	index++;
+	
+	if((trameGlobale[index-2]=='\r') && (trameGlobale[index-1]=='\n'))
+	{
+		if(strstr((const char*)trameGlobale,"$GPRMC"))
+		{
+			for(i=7;i<15;i++)
+				heure[i-7]=trameGlobale[i];
+			for(i=20;i<31;i++)
+				latitude[i-20]=trameGlobale[i];
+			for(i=32;i<44;i++)
+				longitude[i-32]=trameGlobale[i];
+			
+			
+			/*for(i=0;i<2;i++)
+				latitudeConvpartieun[i]=latitude[i];
+			for(i=2;i<8;i++)
+				latitudeConvpartiedeux[i]=latitude[i];
+			
+			for(i=0;i<3;i++)
+				longitudeConvpartieun[i]=longitude[i];
+			for(i=3;i<9;i++)
+				longitudeConvpartiedeux[i]=longitude[i];
+			
+			latitudeFinale=atoi(latitudeConvpartieun)+atof(latitudeConvpartiedeux)/60;
+			longitudeFinale=atoi(longitudeConvpartieun)+atof(longitudeConvpartiedeux)/60;
+			
+			sprintf(l,"%f %c",latitudeFinale,trameGlobale[25]);
+			sprintf(L,"%f %c",longitudeFinale,trameGlobale[37]);*/
+			
+			HAL_UART_Transmit(&huart2,(uint8_t *)heure,6,100);
+			HAL_UART_Transmit(&huart2,(uint8_t *)retourLigne,1,100);
+			HAL_UART_Transmit(&huart2,(uint8_t *)latitude,11,100);
+			HAL_UART_Transmit(&huart2,(uint8_t *)retourLigne,1,100);
+			HAL_UART_Transmit(&huart2,(uint8_t *)longitude,12,100);
+			HAL_UART_Transmit(&huart2,(uint8_t *)retourLigne,1,100);
+			HAL_UART_Transmit(&huart2,(uint8_t *)retourLigne,1,100);
+		}
+		index=0;
+		memset(trameGlobale, 0, sizeof(trameGlobale));
+	}
+	
+ 	HAL_UART_Receive_IT(huart,(uint8_t *) bufGPS,1);}
 	
 }
+
 /* USER CODE END 4 */
 
 /**
@@ -425,12 +599,14 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+
 	while (1){
 		HAL_UART_Transmit(&huart2,(uint8_t*)"Err_Hand l-306",15,1);
 		HAL_Delay(1000);
 		
 		
 	}
+
   /* USER CODE END Error_Handler_Debug */
 }
 
