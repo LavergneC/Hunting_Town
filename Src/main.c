@@ -126,7 +126,6 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 	config_GPIO();
-	initGPS();
 
   /* USER CODE END Init */
 
@@ -145,6 +144,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
 	
+	/*
 	HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Debut Init---\n\n",21,10); 
 	do{
 		if (nb_try != 0)
@@ -159,10 +159,13 @@ int main(void)
 	else
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCESS---\n\n",21,10); 
 	
-	HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,200);
+	*/
 	
 	//sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
 	//sendAT(&huart3, init_AT_command(2, (char*)"AT+CCLK?\r", 50));
+	
+	initGPS();
+	HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,200);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -171,13 +174,14 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+		
     /* USER CODE BEGIN 3 */
   }
 }
 
 void initGPS(void)
 {
+	HAL_UART_Transmit(&huart2,(uint8_t*)"\n***Init-GPS***\n",17,10);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_SET);//RST=1
 	HAL_Delay(300);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);//RST=0
@@ -186,9 +190,20 @@ void initGPS(void)
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-	HAL_Delay(5000);
+	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
+	HAL_Delay(1000);
+	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
+	HAL_Delay(1000);
+	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
+	HAL_Delay(1000);
+	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
+	HAL_Delay(1000);
+	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
+	HAL_Delay(1000);
+	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	HAL_Delay(100);
+	HAL_UART_Transmit(&huart2,(uint8_t*)"\n***FIN-Init-GPS***\n",21,10);
 }
   /* USER CODE END 3 */
 
@@ -400,16 +415,12 @@ void config_GPIO(void){
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(huart);
-
 	if (huart->Instance == huart3.Instance){
 		static char staking[RX_BUFFER_SIZE];
 		static unsigned int index = 0;
 		char flag_reset_index = 'F';
 		char flag_end_responce = 0;
 		char forDebugONLY = 'o';
-		
 		
 		staking[index] = rxBuffer[0];
 		
@@ -553,6 +564,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				sprintf(L,"%f %c",longitudeFinale,trameGlobale[37]);*/
 				
 				HAL_UART_Transmit(&huart2,(uint8_t *)heure,6,100);
+				//uartEndLine(&huart2); -> A FAIRE
 				HAL_UART_Transmit(&huart2,(uint8_t *)retourLigne,1,100);
 				HAL_UART_Transmit(&huart2,(uint8_t *)latitude,11,100);
 				HAL_UART_Transmit(&huart2,(uint8_t *)retourLigne,1,100);
@@ -564,7 +576,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			memset(trameGlobale, 0, sizeof(trameGlobale));
 		}
 		
-		HAL_UART_Receive_IT(huart,(uint8_t *) bufGPS,1);}
+		HAL_UART_Receive_IT(huart,(uint8_t *) bufGPS,1);
+	}
 	
 }
 

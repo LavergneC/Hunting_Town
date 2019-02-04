@@ -57,7 +57,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	// Code Pin
 	//AT_command monAT = init_AT_command(1,"AT+CPIN=\"0264\"\r", 50);
 
-	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"0264\"\r", 50, AT_OE, 250);
+	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", 50, AT_OE, 250);
 	
 	initsCommands[1] = init_AT_command(3,"AT+CPIN?\r", 50, AT_C_CPIN, 250);
 	
