@@ -108,6 +108,7 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	
   HAL_Init();
 	
   /* USER CODE BEGIN Init */
@@ -146,8 +147,10 @@ int main(void)
   /* Infinite loop */
 	
   /* USER CODE BEGIN WHILE */
+
   while (1){
     /* USER CODE END WHILE */
+		postGPS(&huart3, "12345678901","123456789012");
     /* USER CODE BEGIN 3 */
   }
 }
@@ -521,7 +524,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			index=0;
 			memset(trameGlobale, 0, sizeof(trameGlobale));
 		}
-		HAL_UART_Receive_IT(huart,(uint8_t *) bufGPS,1);
+		//HAL_UART_Receive_IT(huart,(uint8_t *) bufGPS,1);
 	}
 	
 }
@@ -536,12 +539,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
-	while (1){
-		HAL_UART_Transmit(&huart2,(uint8_t*)"Err_Hand l-306",15,1);
-		HAL_Delay(1000);
-	}
-
+	HAL_UART_Transmit(&huart2,(uint8_t*)"Err_Hand l-306",15,1);
   /* USER CODE END Error_Handler_Debug */
 }
 

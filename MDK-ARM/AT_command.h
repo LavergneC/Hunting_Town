@@ -1,6 +1,9 @@
 #include <stm32f4xx_hal.h>
 #include <string.h>
+#include <stdlib.h>
 
+#define TAILLE_COMMANDE 193
+#define NB_PARTIE 9
 #define RX_BUFFER_SIZE 200
 
 /*
@@ -27,3 +30,4 @@ void uartEndLine(UART_HandleTypeDef *huart);
 void initLARA(UART_HandleTypeDef *huart);
 AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_reponses, TypeATCommand type, uint32_t temps_reponse);
 StatusAT initConnectionHTTP(UART_HandleTypeDef *huart);
+void postGPS(UART_HandleTypeDef* huart, char * lat, char * lon);
