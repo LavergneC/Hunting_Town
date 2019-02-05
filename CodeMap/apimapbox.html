@@ -43,20 +43,84 @@
     };
 
     var body = {
-      'deviceid': 54321,
+      'deviceid': 18111,
+	  'ordid':19146,
       'data': 'Hello, Hologram!'
     };
+	
+	/*Demande du fichier JSON sur le serveur d'hologram*/
+	var request = new XMLHttpRequest();
 
-    request.send(JSON.stringify(body))
+	request.open('GET', 'https://dashboard.hologram.io/api/1/devices/18111?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');
 
-    var lati = 44.85414613745715;
-    var longit = -0.5132433772087098;
+	request.onreadystatechange = function () {
+	if (this.readyState === 4) {
+		console.log('Status:', this.status);
+		console.log('Headers:', this.getAllResponseHeaders());
+		console.log('Body:', this.responseText);
+	}
+	};
+
+	request.send();
+	
+    //request.send(JSON.stringify(body))
+
+    var json = this.responseText;
+	var obj;
+	var latitude_conv;
+	var longitude_conv;
+	var signeLat;
+	var signeLong;
+
+	var latpart1="";
+	var latpart2="";
+	var longpart1="";
+	var longpart2="";
+
+	var latitude_finale;
+	var longitude_finale;
+
+	obj=JSON.parse(json);
+
+	latitude_conv=obj.latitude.split(',');
+	longitude_conv = obj.longitude.split(',');
+
+	if(longitude_conv[1]=="S")
+		signeLat=-1;
+	else
+		signeLat=1;
+
+	if(longitude_conv[1]=="W")
+		signeLong=-1;
+	else
+		signeLong=1;
+
+
+	for (let i =0;i<2;i++) {
+	latpart1+=latitude_conv[0][i];
+	}
+
+	for (let i =2;i<latitude_conv[0].length;i++) {
+	latpart2+=latitude_conv[0][i];
+	}
+
+	for (let i =0;i<3;i++) {
+	longpart1+=longitude_conv[0][i];
+	}
+
+	for (let i =3;i<longitude_conv[0].length;i++) {
+	longpart2+=longitude_conv[0][i];
+	}
+
+
+	latitude_finale=parseInt(latpart1)+((parseFloat(latpart2))/60)*signeLat;
+	longitude_finale=(parseFloat(longpart1)+(parseFloat(longpart2)/60))*signeLong;
 
 
     var map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v9',
-      center: [longit, lati],
+      center: [longitude_finale, latitude_finale],
       zoom: 18
     });
 
@@ -66,7 +130,7 @@
       return {
         "type": "Point",
         "coordinates": [
-          longit, lati
+          longitude_finale,latitude_finale
         ]
       };
     }
