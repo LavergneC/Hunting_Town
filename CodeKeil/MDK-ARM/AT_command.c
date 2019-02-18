@@ -28,6 +28,8 @@ void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
 	
 	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 	while (statusAT != OK && count_time_out < time_out){
+		if (sizeTabChar(at_command.command) > 100){
+		}
 		HAL_UART_Transmit(huart,(uint8_t*)at_command.command,sizeTabChar(at_command.command),10);
 		HAL_Delay(at_command.temps_reponse);
 		count_time_out++;
@@ -55,7 +57,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	int nb_init = 0;
 	
 	// Code Pin
-	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"0264\"\r", 50, AT_OE, 250);
+	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", 50, AT_OE, 250);
 	
 	initsCommands[1] = init_AT_command(3,"AT+CPIN?\r", 50, AT_C_CPIN, 250);
 	
@@ -144,39 +146,13 @@ AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_r
 	return mon_AT;
 }
 
+void postGPS(UART_HandleTypeDef* huart, char lat[12], char lon[12]){
 
-
-/*
-AT+UHTTPC=0,5,"adresse",”filename”,”data_hologram",0\r
-adresse : 'https://dashboard.hologram.io/api/1/sms/incoming?apikey=2rjpYZZNzFAoGxAgEP2SC6moL3emyB'
-data : '{"deviceid": 56668, "body": "Hello device!"}' 
-
-but :
-AT+UHTTPC=0,5,"https://dashboard.hologram.io/api/1/sms/incoming?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg","filename",'{"latitude": 12345678901, "longitude": 123456789012}',0\r 
-but 2 : 
-AT+UHTTPC=0,5,"https://dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg",
-"filename_post","{'deviceid': 19146, 'latitude':'12345678901', 'longitude':'123456789012'}",4\r
-*/
-void postGPS(UART_HandleTypeDef* huart, char * lat, char * lon){
-	char * deviceID  = "12345";
-	char * api_key = "2bPklUk5bQwezsMckFc7lZkWQcxLTg";
-	char * partiesCommande[NB_PARTIE] = {
-							"AT+UHTTPC=0,5,\"https://dashboard.hologram.io/api/1/csr/rdm?apikey=",
-							api_key, 
-							"\",\"filename_post\",\"{'deviceid': ", 
-							deviceID, 
-							", 'latitude':'", lat, 
-							"', 'longitude':'", lon, 
-							"'}\",4\r"
-							};
+	char commande[TAILLE_COMMANDE_POST] = "AT+UHTTPC=0,4,\"dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"filename_post\",\"fileSystemName\",4\r";
 	
-	char* commande = malloc(TAILLE_COMMANDE);
-	commande = "";
-	for(int i = 0; i< NB_PARTIE; i++)
-		commande = strcat(commande, partiesCommande[i]);
 	
-	//HAL_UART_Transmit(&huart2,(uint8_t*)commande, TAILLE_COMMANDE, 10);
-	AT_command commandePost = init_AT_command(3,commande, 150/*? ? ?*/, AT_C_UHTTPC, 4000);
+  AT_command commandePost = init_AT_command(3,commande,300,AT_C_UHTTPC,4000);
+
 	currentAT = commandePost;
 	sendAT(huart, commandePost);
 }

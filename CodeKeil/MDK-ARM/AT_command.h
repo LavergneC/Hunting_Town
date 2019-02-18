@@ -2,9 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define TAILLE_COMMANDE 193
-#define NB_PARTIE 9
-#define RX_BUFFER_SIZE 200
+#include "..\MDK-ARM\fonctions_char.h"
+
+#define TAILLE_COMMANDE_POST 
+#define RX_BUFFER_SIZE 300
 
 /*
 Type :
