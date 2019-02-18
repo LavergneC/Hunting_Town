@@ -43,12 +43,13 @@
 
 /* USER CODE BEGIN Includes */
 #include "stm32f4xx_hal.h"
-#include "..\MDK-ARM\fonctions_char.h"
+#include "..\MDK-ARM\AT_command.h"
 #include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+#define TAILLE_REPONSE 200
 /* USER CODE END PTD */
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
@@ -127,6 +128,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
 	HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Debut Init---\n\n",21,10); 
+	
+	
 	do{
 		if (nb_try != 0)
 			HAL_UART_Transmit(&huart2,(uint8_t*)"\n- Nouvel init...\n\n",20,10); 
@@ -135,22 +138,24 @@ int main(void)
 		nb_try++;
 	}while(initStatus == FAILED && nb_try < 5);
 	
-	if(initStatus == FAILED)
+	if(initStatus == FAILED || initStatus == EN_COURS)
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init FAILED---\n\n",21,10);
 	else
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCESS---\n\n",21,10); 
 	
-	initGPS();
+	//initGPS();
 	HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
 	
   /* USER CODE BEGIN WHILE */
-
+	postGPS(&huart3, "12345678901","123456789012");
+	
   while (1){
     /* USER CODE END WHILE */
-		postGPS(&huart3, "12345678901","123456789012");
+		
+		HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   }
 }
@@ -379,7 +384,7 @@ void config_GPIO(void){
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	if (huart->Instance == huart3.Instance){
 		static char staking[RX_BUFFER_SIZE];
-		static unsigned int index = 0;
+		static unsigned short index = 0;
 		char flag_reset_index = 'F';
 		char flag_end_responce = 0;
 		
@@ -397,12 +402,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		/*Actions grâce aux réponses*/
 		if (flag_end_responce){
 			flag_end_responce = 0;
-			char reponses[currentAT.nombre_reponses][60];
-			volatile unsigned int nb_reponse = currentAT.nombre_reponses;
+			static char reponses[5][TAILLE_REPONSE];
+			/* Reset de reponse*/
+			for(short index_tab = 0; index_tab < 5; index_tab++){ //memset ?
+				for(short new_index = 0; new_index < TAILLE_REPONSE; new_index++){
+					reponses[index_tab][new_index] = 0x00;
+				}
+			}
+			//volatile unsigned int nb_reponse = currentAT.nombre_reponses;
 		
 			/* récupération des réponses dans des buffers spécifiques */
 			uint8_t cptBuffer=0, cpt = 0;
-			for(int i=0 ; i<index+1 ; i++){
+			for(short i=0 ; i<index+1 ; i++){
 				if(staking[i] == '\r' || staking[i] == '\n' || staking[i] == '\0' || staking[i] == 0x0D){
 					if(cpt != 0){
 						reponses[cptBuffer][cpt+1] = '\0';
@@ -418,8 +429,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		 /* ---	---	---	---	---	---	---	---		---	---		---	---	*/
 			
 			/* Affichage des réponses */
-			for(int i = 0; i < currentAT.nombre_reponses; i++){
-					HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),10);
+			for(short i = 0; i < currentAT.nombre_reponses; i++){
+					HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),200);
 					uartEndLine(&huart2);
 			}
 			uartEndLine(&huart2);
@@ -454,12 +465,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			}
 			
 			/* Reset des buffers*/
-			for(int index_tab = 0; index_tab < currentAT.nombre_reponses; index_tab++){ //memset ?
-				for(int new_index = 0 ; new_index < 60 ; new_index++){
-					reponses[index_tab][new_index] = 0x00;
-				}
-			}
-			for(int index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
+			for(short index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
 				staking[index_tab] = 0x00;
 			flag_reset_index = 'T';
 			/* - - - - - - - - */
