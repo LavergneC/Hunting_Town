@@ -48,20 +48,20 @@ void uartEndLine(UART_HandleTypeDef *huart){
 	return;
 }
 void initLARA(UART_HandleTypeDef *huart){
-	int nbCommand = 3;
+	int nbCommand = 2;
 	AT_command initsCommands[nbCommand];
 	int num_commande;
 	int timeout = 20;
 	int nb_init = 0;
 	
 	// Code Pin
-	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", AT_OE, 250);
+	//initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", AT_OE, 250);
 	
-	initsCommands[1] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
+	initsCommands[0] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
 	
 	// Mode full fonctionnality
 
-	initsCommands[2] = init_AT_command(2,"AT+CFUN=1\r", AT_OE, 250);
+	initsCommands[1] = init_AT_command(2,"AT+CFUN=1\r", AT_OE, 250);
 	
 	do{
 		for(num_commande = 0; num_commande < nbCommand; num_commande++){
@@ -79,7 +79,7 @@ void initLARA(UART_HandleTypeDef *huart){
 }
 
 StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
-	int nbCommand = 7;
+	int nbCommand = 10;
 	AT_command initsCommands[nbCommand];
 	int timeout_HTTP = 2;
 	int nb_init = 0;
@@ -89,31 +89,34 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	// Automatic network registration
 	initsCommands[0] = init_AT_command(2, "AT+COPS=0,0\r", AT_C_COPS, 250);
 	
-	initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"hologram\"\r",AT_OE, 250);
 	/* AT+UPSD=0,1,"hologram" */
+	initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"hologram\"\r", AT_OE, 250);
+	
 	
 	/* AT+UPSDA=0,1 */
+	initsCommands[2] = init_AT_command(2, "AT+UPSDA=0,1\r", AT_OE, 250);
 	
 	/* AT+UPSD=0,100,1 */
+	initsCommands[3] = init_AT_command(2, "AT+UPSD=0,100,1\r", AT_OE, 250);
 	
 	// On active le contexte PDP --> connection à l'internet
-	initsCommands[1] = init_AT_command(3, "AT+UPSDA=0,3\r", AT_OE_RI, 1000);
+	initsCommands[4] = init_AT_command(3, "AT+UPSDA=0,3\r", AT_OE_RI, 1000);
 	
 	/* Gestion de l'HTTP */
 	
 	// Reset de l'environnement HTTP
-	initsCommands[2] = init_AT_command(2, "AT+UHTTP=0\r", AT_OE, 250);
+	initsCommands[5] = init_AT_command(2, "AT+UHTTP=0\r", AT_OE, 250);
 	
 	// Renseignement du nom du serveur
-	initsCommands[3] = init_AT_command(2, "AT+UHTTP=0,1,\"ptsv2.com\"\r", AT_OE, 250);
+	initsCommands[6] = init_AT_command(2, "AT+UHTTP=0,1,\"ptsv2.com\"\r", AT_OE, 250);
 	
 	// Renseignement du port de communication HTTP
-	initsCommands[4] = init_AT_command(2, "AT+UHTTP=0,5,80\r", AT_OE, 250);
+	initsCommands[7] = init_AT_command(2, "AT+UHTTP=0,5,80\r", AT_OE, 250);
 	
 	// Résolution DNS à partir du nom du serveur
-	initsCommands[5] = init_AT_command(3, "AT+UDNSRN=0,\"ptsv2.com\"\r", AT_RI_OE, 2500);
+	initsCommands[8] = init_AT_command(3, "AT+UDNSRN=0,\"ptsv2.com\"\r", AT_RI_OE, 2500);
 	
-	initsCommands[6] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", AT_C_UHTTPC, 4000);
+	initsCommands[9] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", AT_C_UHTTPC, 4000);
 	
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);
 	do{
