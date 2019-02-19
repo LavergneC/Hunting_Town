@@ -141,9 +141,9 @@ int main(void)
 	if(initStatus == FAILED || initStatus == EN_COURS)
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init FAILED---\n\n",21,10);
 	else
-		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCESS---\n\n",21,10); 
+		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCCESS---\n\n",21,10); 
 	
-	//initGPS();
+	initGPS();
 	HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,1);
   /* USER CODE END 2 */
 
@@ -526,11 +526,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				HAL_UART_Transmit(&huart2,(uint8_t *)longitude,12,100);
 				uartEndLine(&huart2);
 				uartEndLine(&huart2);
+				
+				creationFichier(&huart3, latitude, longitude);
 			}
 			index=0;
 			memset(trameGlobale, 0, sizeof(trameGlobale));
 		}
-		//HAL_UART_Receive_IT(huart,(uint8_t *) bufGPS,1);
+		HAL_UART_Receive_IT(huart,(uint8_t *) bufGPS,1);
 	}
 	
 }
