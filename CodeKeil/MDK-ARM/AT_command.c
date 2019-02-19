@@ -55,13 +55,13 @@ void initLARA(UART_HandleTypeDef *huart){
 	int nb_init = 0;
 	
 	// Code Pin
-	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", 50, AT_OE, 250);
+	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", AT_OE, 250);
 	
-	initsCommands[1] = init_AT_command(3,"AT+CPIN?\r", 50, AT_C_CPIN, 250);
+	initsCommands[1] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
 	
 	// Mode full fonctionnality
 
-	initsCommands[2] = init_AT_command(2,"AT+CFUN=1\r", 50, AT_OE, 250);
+	initsCommands[2] = init_AT_command(2,"AT+CFUN=1\r", AT_OE, 250);
 	
 	do{
 		for(num_commande = 0; num_commande < nbCommand; num_commande++){
@@ -87,8 +87,9 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	/* Config réseau */
 	
 	// Automatic network registration
-	initsCommands[0] = init_AT_command(2, "AT+COPS=0,0\r", 50, AT_C_COPS, 250);
+	initsCommands[0] = init_AT_command(2, "AT+COPS=0,0\r", AT_C_COPS, 250);
 	
+	initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"hologram\"\r",AT_OE, 250);
 	/* AT+UPSD=0,1,"hologram" */
 	
 	/* AT+UPSDA=0,1 */
@@ -96,23 +97,23 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	/* AT+UPSD=0,100,1 */
 	
 	// On active le contexte PDP --> connection à l'internet
-	initsCommands[1] = init_AT_command(3, "AT+UPSDA=0,3\r", 50, AT_OE_RI, 1000);
+	initsCommands[1] = init_AT_command(3, "AT+UPSDA=0,3\r", AT_OE_RI, 1000);
 	
 	/* Gestion de l'HTTP */
 	
 	// Reset de l'environnement HTTP
-	initsCommands[2] = init_AT_command(2, "AT+UHTTP=0\r", 100, AT_OE, 250);
+	initsCommands[2] = init_AT_command(2, "AT+UHTTP=0\r", AT_OE, 250);
 	
 	// Renseignement du nom du serveur
-	initsCommands[3] = init_AT_command(2, "AT+UHTTP=0,1,\"ptsv2.com\"\r", 50, AT_OE, 250);
+	initsCommands[3] = init_AT_command(2, "AT+UHTTP=0,1,\"ptsv2.com\"\r", AT_OE, 250);
 	
 	// Renseignement du port de communication HTTP
-	initsCommands[4] = init_AT_command(2, "AT+UHTTP=0,5,80\r", 50, AT_OE, 250);
+	initsCommands[4] = init_AT_command(2, "AT+UHTTP=0,5,80\r", AT_OE, 250);
 	
 	// Résolution DNS à partir du nom du serveur
-	initsCommands[5] = init_AT_command(3, "AT+UDNSRN=0,\"ptsv2.com\"\r", 80, AT_RI_OE, 2500);
+	initsCommands[5] = init_AT_command(3, "AT+UDNSRN=0,\"ptsv2.com\"\r", AT_RI_OE, 2500);
 	
-	initsCommands[6] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", 150, AT_C_UHTTPC, 4000);
+	initsCommands[6] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", AT_C_UHTTPC, 4000);
 	
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);
 	do{
@@ -139,11 +140,10 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 		
 }
 
-AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_reponses, TypeATCommand type, uint32_t temps_reponse){
+AT_command init_AT_command(int nombre_reponses, char * command, TypeATCommand type, uint32_t temps_reponse){
 	AT_command mon_AT;
 	mon_AT.command = command;
 	mon_AT.nombre_reponses=nombre_reponses;
-	mon_AT.taille_max_reponses=taille_max_reponses;
 	mon_AT.type = type;
 	mon_AT.temps_reponse = temps_reponse;
 
@@ -154,14 +154,14 @@ void postGPS(UART_HandleTypeDef* huart, char lat[12], char lon[12]){
 
 	char commande[TAILLE_COMMANDE_POST] = "AT+UHTTPC=0,4,\"dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"filename_post\",\"fileSystemName\",4\r";
 	
-  AT_command commandePost = init_AT_command(3,commande,300,AT_C_UHTTPC,4000);
+  AT_command commandePost = init_AT_command(3,commande,AT_C_UHTTPC,4000);
 
 	currentAT = commandePost;
 	sendAT(huart, commandePost);
 }
 
 void creationFichier(UART_HandleTypeDef* huart, char* lagitude, char* longitude){
-	currentAT = init_AT_command(1, "AT+UDWNFILE=\"LatitudeLongitude\",67\r",100, AT_OE, 150);
+	currentAT = init_AT_command(1, "AT+UDWNFILE=\"LatitudeLongitude\",67\r", AT_OE, 150);
 	sendAT(huart, currentAT);
 	char contenu[75] = "{ \"deviceid\": 199074, \"lat\": \"4451.1810,N\", \"long\": \"00033.8545,W\" }";
 	HAL_UART_Transmit(huart, (uint8_t*)contenu, sizeTabChar(contenu), 10);

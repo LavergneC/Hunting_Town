@@ -20,7 +20,6 @@ typedef enum {EN_COURS, OK, FAILED}StatusAT;
 typedef struct {
 	int nombre_reponses;
 	char * command;
-	int taille_max_reponses;
 	TypeATCommand type;
 	uint32_t temps_reponse; // en ms
 }AT_command;
@@ -29,7 +28,7 @@ int sizeTabChar(char * s);
 void sendAT(UART_HandleTypeDef* huart, AT_command at_command);
 void uartEndLine(UART_HandleTypeDef *huart);
 void initLARA(UART_HandleTypeDef *huart);
-AT_command init_AT_command(int nombre_reponses, char * command, int taille_max_reponses, TypeATCommand type, uint32_t temps_reponse);
+AT_command init_AT_command(int nombre_reponses, char * command, TypeATCommand type, uint32_t temps_reponse);
 StatusAT initConnectionHTTP(UART_HandleTypeDef *huart);
 void postGPS(UART_HandleTypeDef* huart, char * lat, char * lon);
 void creationFichier(UART_HandleTypeDef* huart, char* latitude, char* longitude);
