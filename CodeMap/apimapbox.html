@@ -33,11 +33,8 @@
 	var request = new XMLHttpRequest();
 
 	request.open('GET', 'https://dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');
-  console.log("SAlut");
 	request.onreadystatechange = function () {
-    console.log("SALut");
   	if (this.readyState === 4) {
-      console.log("SALUT");
   		console.log('Status:', this.status);
   		console.log('Headers:', this.getAllResponseHeaders());
   		var json = this.responseText;
