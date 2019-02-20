@@ -30,23 +30,22 @@
 
 
 	/*Demande du fichier JSON sur le serveur d'hologram*/
+
 	var request = new XMLHttpRequest();
 
 	request.open('GET', 'https://dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');
-  console.log("SAlut");
 	request.onreadystatechange = function () {
-    console.log("SALut");
   	if (this.readyState === 4) {
-      console.log("SALUT");
   		console.log('Status:', this.status);
   		console.log('Headers:', this.getAllResponseHeaders());
   		var json = this.responseText;
       var obj = JSON.parse(json);
 
       var obj2 = JSON.parse(obj.data[0].data);
-      console.log(atob(obj2.data));
-      var obj3 = JSON.parse(atob(obj2.data));
+      //console.log(atob(obj2.data));
+      var obj3 = String(atob(obj2.data));
       console.log(obj3);
+
     	var latitude_conv;
     	var longitude_conv;
     	var signeLat;
@@ -63,8 +62,11 @@
 
     	//obj=JSON.parse(json);
 
-    	latitude_conv=obj3.latitude.split(',');//latitude.split(',');
-    	longitude_conv = obj3.longitude.split(',');//longitude.split(',');
+    	latitude_conv=obj3.split(" ")[0].split(":")[1].split(",");
+    	longitude_conv = obj3.split(" ")[1].split(":")[1].split(",");
+      console.log(latitude_conv);
+      console.log(longitude_conv);
+
     	if(longitude_conv[1]=="S")
     	 signeLat=-1;
     	else
@@ -132,22 +134,10 @@
         }
       });
 
-      function animateMarker(timestamp) {
-            // Update the data to a new position based on the animation timestamp. The
-            // divisor in the expression `timestamp / 1000` controls the animation speed.
-        map.getSource('point').setData(pointOnCircle(timestamp / 1000));
-
-            // Request the next frame of the animation.
-        requestAnimationFrame(animateMarker);
-          }
-
-          // Start the animation.
-          animateMarker(0);
           });
 
   	  }
   }
-
   request.send();
 
   </script>
