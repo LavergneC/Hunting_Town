@@ -70,6 +70,9 @@ UART_HandleTypeDef huart6;
 char rxBuffer[1];
 StatusAT statusAT = EN_COURS;
 AT_command currentAT;
+int8_t latitude[12];
+int8_t longitude[13];
+uint8_t flag_new_data_GPS = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,6 +107,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	char msg[] = "\nDebut Transmission : \n";
 	StatusAT initStatus = EN_COURS;
+	char debugStop = 0;
 	int nb_try = 0;
   /* USER CODE END 1 */
 
@@ -150,11 +154,16 @@ int main(void)
   /* Infinite loop */
 	
   /* USER CODE BEGIN WHILE */
-	postGPS(&huart3, "12345678901","123456789012");
+	//postGPS(&huart3, "12345678901","123456789012");
 	
   while (1){
     /* USER CODE END WHILE */
-		
+		if(flag_new_data_GPS /*&& debugStop == 0*/){
+			creationFichier(&huart3, latitude, longitude);
+		  postGPS(&huart3);
+			debugStop = 1 ;
+			flag_new_data_GPS = 0;
+		}
 		HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   }
@@ -396,11 +405,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				flag_end_responce = 1;
 			}
 		}
+		else if(currentAT.type == AT_C_UDWNFILE){
+				if (staking[index] == '>')
+					flag_end_responce = 1;
+		}
 		else if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O'))
+			
 			flag_end_responce = 1;
+		/*-------*/
 		
-		/*Actions grâce aux réponses*/
 		if (flag_end_responce){
+			/*Actions grâce aux réponses*/
 			flag_end_responce = 0;
 			static char reponses[5][TAILLE_REPONSE];
 			/* Reset de reponse*/
@@ -454,16 +469,27 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				else
 					statusAT = FAILED;
 			}
-			else if(currentAT.type == AT_C_COPS)
+			else if(currentAT.type == AT_C_COPS || currentAT.type == AT_RI){
 				statusAT = OK;
-			
+			}
 			else if(currentAT.type == AT_C_UHTTPC){
 				if (reponses[2][15] == '1')
 					statusAT = OK;
 				else
 					statusAT = FAILED;
 			}
-			
+			else if (currentAT.type ==  RI_AT_C_UHTTPC){
+				if (reponses[3][15] == '1')
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+			}
+			else if (currentAT.type == AT_C_UDWNFILE){
+				statusAT = OK;
+				
+				/* On fait ça de manière à reset le buffer qui va contenir le ok de UDWNFILE */
+				currentAT.type = AT_RI;
+			}
 			/* Reset des buffers*/
 			for(short index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
 				staking[index_tab] = 0x00;
@@ -484,8 +510,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	else if(huart->Instance == huart6.Instance){
 		static char trameGlobale[150];
 		static char heure[6];
-		static char latitude[11];
-		static char longitude[12];
+
 		static unsigned char index=0;
 		static unsigned char i=0;
 		
@@ -494,7 +519,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		
 		if((trameGlobale[index-2]=='\r') && (trameGlobale[index-1]=='\n'))
 		{
-			if(strstr((const char*)trameGlobale,"$GPRMC"))
+			if(strstr((const char*)trameGlobale,"$GPRMC") && flag_new_data_GPS == 0)
 			{
 				for(i=7;i<15;i++)
 					heure[i-7]=trameGlobale[i];
@@ -527,7 +552,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				uartEndLine(&huart2);
 				uartEndLine(&huart2);
 				
-				creationFichier(&huart3, latitude, longitude);
+				/*for debug only*/
+				char * la = "4451.1810,N";
+				for(int i = 0; i < 13; i++)
+					latitude[i] = la[i];
+				char* lo =  "00033.8545,W";
+				for(int i = 0; i < 14; i++)
+					longitude[i] = lo[i];
+				/*end debug only*/
+				
+				flag_new_data_GPS = 1;
 			}
 			index=0;
 			memset(trameGlobale, 0, sizeof(trameGlobale));

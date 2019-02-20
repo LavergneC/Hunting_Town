@@ -31,6 +31,8 @@ void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
 		HAL_UART_Transmit(huart,(uint8_t*)at_command.command,sizeTabChar(at_command.command),10);
 		HAL_Delay(at_command.temps_reponse);
 		count_time_out++;
+		if(currentAT.type == AT_C_UDWNFILE)
+			break;
 	}
 	
 //	for(uint8_t nb_reponse = 0; nb_reponse < nbRep; nb_reponse++){
@@ -76,6 +78,9 @@ void initLARA(UART_HandleTypeDef *huart){
 			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init LARA : RETRY***\n",25,10);
 	
 	}while(statusAT == FAILED && nb_init < timeout);
+	
+	currentAT = init_AT_command(2,"AT+UDELFILE=\"LatitudeLongitude\"\r",AT_OE,150);
+	sendAT(huart, currentAT);
 }
 
 StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
@@ -108,15 +113,17 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	initsCommands[5] = init_AT_command(2, "AT+UHTTP=0\r", AT_OE, 250);
 	
 	// Renseignement du nom du serveur
-	initsCommands[6] = init_AT_command(2, "AT+UHTTP=0,1,\"ptsv2.com\"\r", AT_OE, 250);
+	initsCommands[6] = init_AT_command(2, "AT+UHTTP=0,1,\"dashboard.hologram.io\"\r", AT_OE, 250);
 	
 	// Renseignement du port de communication HTTP
 	initsCommands[7] = init_AT_command(2, "AT+UHTTP=0,5,80\r", AT_OE, 250);
 	
 	// Résolution DNS à partir du nom du serveur
-	initsCommands[8] = init_AT_command(3, "AT+UDNSRN=0,\"ptsv2.com\"\r", AT_RI_OE, 2500);
+	initsCommands[8] = init_AT_command(3, "AT+UDNSRN=0,\"dashboard.hologram.io\"\r", AT_RI_OE, 2500);
 	
-	initsCommands[9] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", AT_C_UHTTPC, 4000);
+	//https -> https
+	initsCommands[9] = init_AT_command(2, "AT+UHTTP=0,6,1,2\r",AT_OE, 250);
+	//initsCommands[9] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", AT_C_UHTTPC, 4000);
 	
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);
 	do{
@@ -153,20 +160,32 @@ AT_command init_AT_command(int nombre_reponses, char * command, TypeATCommand ty
 	return mon_AT;
 }
 
-void postGPS(UART_HandleTypeDef* huart, char lat[12], char lon[12]){
+void postGPS(UART_HandleTypeDef* huart){
 
-	char commande[TAILLE_COMMANDE_POST] = "AT+UHTTPC=0,4,\"dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"filename_post\",\"fileSystemName\",4\r";
+	char commande[111] = "AT+UHTTPC=0,4,\"/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"LatitudeLongitude\",\"fileSystemName\",4\r";
 	
-  AT_command commandePost = init_AT_command(3,commande,AT_C_UHTTPC,4000);
+  AT_command commandePost = init_AT_command(4,"AT+UHTTPC=0,4,\"/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"fileSystemName\",\"LatitudeLongitude\",4\r",AT_C_UHTTPC,4000);
 
 	currentAT = commandePost;
 	sendAT(huart, commandePost);
+	
+	currentAT = init_AT_command(2,"AT+UDELFILE=\"LatitudeLongitude\"\r",AT_OE,150);
+	sendAT(huart, currentAT);
 }
 
-void creationFichier(UART_HandleTypeDef* huart, char* lagitude, char* longitude){
-	currentAT = init_AT_command(1, "AT+UDWNFILE=\"LatitudeLongitude\",67\r", AT_OE, 150);
+void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longitude){
+	//char contenu[75] = "{ \"deviceid\": 199074, \"lat\": \"4451.1810,N\", \"long\": \"00033.8545,W\" }\r";
+	
+	currentAT = init_AT_command(1, "AT+UDWNFILE=\"LatitudeLongitude\",77\r", AT_C_UDWNFILE, 150);
 	sendAT(huart, currentAT);
-	char contenu[75] = "{ \"deviceid\": 199074, \"lat\": \"4451.1810,N\", \"long\": \"00033.8545,W\" }";
+	
+	char contenu[85] = "{ \"deviceid\": 199074, \"data\": \"latitude:";
+	myStrcat(contenu,(char*) latitude);
+	myStrcat(contenu, " longitude:");
+	myStrcat(contenu,(char*) longitude);
+	myStrcat(contenu, "\" }");
+	
 	HAL_UART_Transmit(huart, (uint8_t*)contenu, sizeTabChar(contenu), 10);
 	HAL_UART_Transmit(&huart2, (uint8_t*)contenu, sizeTabChar(contenu), 10);
+	uartEndLine(&huart2);
 }
