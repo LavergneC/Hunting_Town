@@ -28,8 +28,6 @@ void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
 	
 	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 	while (statusAT != OK && count_time_out < time_out){
-		if (sizeTabChar(at_command.command) > 100){
-		}
 		HAL_UART_Transmit(huart,(uint8_t*)at_command.command,sizeTabChar(at_command.command),10);
 		HAL_Delay(at_command.temps_reponse);
 		count_time_out++;
@@ -91,6 +89,12 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	// Automatic network registration
 	initsCommands[0] = init_AT_command(2, "AT+COPS=0,0\r", 50, AT_C_COPS, 250);
 	
+	/* AT+UPSD=0,1,"hologram" */
+	
+	/* AT+UPSDA=0,1 */
+	
+	/* AT+UPSD=0,100,1 */
+	
 	// On active le contexte PDP --> connection à l'internet
 	initsCommands[1] = init_AT_command(3, "AT+UPSDA=0,3\r", 50, AT_OE_RI, 1000);
 	
@@ -150,9 +154,16 @@ void postGPS(UART_HandleTypeDef* huart, char lat[12], char lon[12]){
 
 	char commande[TAILLE_COMMANDE_POST] = "AT+UHTTPC=0,4,\"dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"filename_post\",\"fileSystemName\",4\r";
 	
-	
   AT_command commandePost = init_AT_command(3,commande,300,AT_C_UHTTPC,4000);
 
 	currentAT = commandePost;
 	sendAT(huart, commandePost);
+}
+
+void creationFichier(UART_HandleTypeDef* huart, char* lagitude, char* longitude){
+	currentAT = init_AT_command(1, "AT+UDWNFILE=\"LatitudeLongitude\",67\r",100, AT_OE, 150);
+	sendAT(huart, currentAT);
+	char contenu[75] = "{ \"deviceid\": 199074, \"lat\": \"4451.1810,N\", \"long\": \"00033.8545,W\" }";
+	HAL_UART_Transmit(huart, (uint8_t*)contenu, sizeTabChar(contenu), 10);
+	HAL_UART_Transmit(&huart2, (uint8_t*)contenu, sizeTabChar(contenu), 10);
 }
