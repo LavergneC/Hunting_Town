@@ -28,115 +28,95 @@
   <script>
     mapboxgl.accessToken = 'pk.eyJ1Ijoid3l6emFydCIsImEiOiJjanJqOW1hMmEwOWZkM3lseHJxdnRycTlxIn0.W7iIjOs_BO-rCL4GFwKt5Q';
 
-    var request = new XMLHttpRequest();
 
-    request.open('POST', 'https://dashboard.hologram.io/api/1/csr/rdm');
-
-    request.setRequestHeader('Content-Type', 'application/json');
-
-    request.onreadystatechange = function() {
-      if (this.readyState === 4) {
-        console.log('Status:', this.status);
-        console.log('Headers:', this.getAllResponseHeaders());
-        console.log('Body:', this.responseText);
-      }
-    };
-
-    var body = {
-      'deviceid': 18111,
-	  'ordid':19146,
-      'data': 'Hello, Hologram!'
-    };
-	
 	/*Demande du fichier JSON sur le serveur d'hologram*/
 	var request = new XMLHttpRequest();
 
-	request.open('GET', 'https://dashboard.hologram.io/api/1/devices/18111?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');
-
+	request.open('GET', 'https://dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');
+  console.log("SAlut");
 	request.onreadystatechange = function () {
-	if (this.readyState === 4) {
-		console.log('Status:', this.status);
-		console.log('Headers:', this.getAllResponseHeaders());
-		console.log('Body:', this.responseText);
-	}
-	};
+    console.log("SALut");
+  	if (this.readyState === 4) {
+      console.log("SALUT");
+  		console.log('Status:', this.status);
+  		console.log('Headers:', this.getAllResponseHeaders());
+  		var json = this.responseText;
+      var obj = JSON.parse(json);
 
-	request.send();
-	
-    //request.send(JSON.stringify(body))
+      var obj2 = JSON.parse(obj.data[0].data);
+      console.log(atob(obj2.data));
+      var obj3 = JSON.parse(atob(obj2.data));
+      console.log(obj3);
+    	var latitude_conv;
+    	var longitude_conv;
+    	var signeLat;
+    	var signeLong;
 
-    var json = this.responseText;
-	var obj;
-	var latitude_conv;
-	var longitude_conv;
-	var signeLat;
-	var signeLong;
+      var latpart1="";
+      var latpart2="";
+    	var longpart1="";
+    	var longpart2="";
 
-	var latpart1="";
-	var latpart2="";
-	var longpart1="";
-	var longpart2="";
-
-	var latitude_finale;
-	var longitude_finale;
-
-	obj=JSON.parse(json);
-
-	latitude_conv=obj.latitude.split(',');
-	longitude_conv = obj.longitude.split(',');
-
-	if(longitude_conv[1]=="S")
-		signeLat=-1;
-	else
-		signeLat=1;
-
-	if(longitude_conv[1]=="W")
-		signeLong=-1;
-	else
-		signeLong=1;
+    	var latitude_finale;
+    	var longitude_finale;
 
 
-	for (let i =0;i<2;i++) {
-	latpart1+=latitude_conv[0][i];
-	}
+    	//obj=JSON.parse(json);
 
-	for (let i =2;i<latitude_conv[0].length;i++) {
-	latpart2+=latitude_conv[0][i];
-	}
+    	latitude_conv=obj3.latitude.split(',');//latitude.split(',');
+    	longitude_conv = obj3.longitude.split(',');//longitude.split(',');
+    	if(longitude_conv[1]=="S")
+    	 signeLat=-1;
+    	else
+    	 signeLat=1;
 
-	for (let i =0;i<3;i++) {
-	longpart1+=longitude_conv[0][i];
-	}
-
-	for (let i =3;i<longitude_conv[0].length;i++) {
-	longpart2+=longitude_conv[0][i];
-	}
+    	if(longitude_conv[1]=="W")
+    	 signeLong=-1;
+    	else
+    	 signeLong=1;
 
 
-	latitude_finale=parseInt(latpart1)+((parseFloat(latpart2))/60)*signeLat;
-	longitude_finale=(parseFloat(longpart1)+(parseFloat(longpart2)/60))*signeLong;
+    	for (let i =0;i<2;i++) {
+    	  latpart1+=latitude_conv[0][i];
+    	}
+
+    	for (let i =2;i<latitude_conv[0].length;i++) {
+    	  latpart2+=latitude_conv[0][i];
+    	}
+
+    	for (let i =0;i<3;i++) {
+    	  longpart1+=longitude_conv[0][i];
+    	}
+
+    	for (let i =3;i<longitude_conv[0].length;i++) {
+    	  longpart2+=longitude_conv[0][i];
+    	}
 
 
-    var map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v9',
-      center: [longitude_finale, latitude_finale],
-      zoom: 18
-    });
+    	latitude_finale=parseInt(latpart1)+((parseFloat(latpart2))/60)*signeLat;
+    	longitude_finale=(parseFloat(longpart1)+(parseFloat(longpart2)/60))*signeLong;
 
-    var radius = 20;
 
-    function pointOnCircle() {
-      return {
-        "type": "Point",
-        "coordinates": [
+      var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v9',
+        center: [longitude_finale, latitude_finale],
+        zoom: 18
+      });
+
+      var radius = 20;
+
+      function pointOnCircle() {
+        return {
+          "type": "Point",
+          "coordinates": [
           longitude_finale,latitude_finale
-        ]
-      };
-    }
+          ]
+        };
+      }
 
-    map.on('load', function() {
-      // Add a source and layer displaying a point which will be animated in a circle.
+      map.on('load', function() {
+          // Add a source and layer displaying a point which will be animated in a circle.
       map.addSource('point', {
         "type": "geojson",
         "data": pointOnCircle(0)
@@ -147,23 +127,29 @@
         "source": "point",
         "type": "circle",
         "paint": {
-          "circle-radius": 10,
-          "circle-color": "#007cbf"
+        "circle-radius": 10,
+        "circle-color": "#007cbf"
         }
       });
 
       function animateMarker(timestamp) {
-        // Update the data to a new position based on the animation timestamp. The
-        // divisor in the expression `timestamp / 1000` controls the animation speed.
+            // Update the data to a new position based on the animation timestamp. The
+            // divisor in the expression `timestamp / 1000` controls the animation speed.
         map.getSource('point').setData(pointOnCircle(timestamp / 1000));
 
-        // Request the next frame of the animation.
+            // Request the next frame of the animation.
         requestAnimationFrame(animateMarker);
-      }
+          }
 
-      // Start the animation.
-      animateMarker(0);
-    });
+          // Start the animation.
+          animateMarker(0);
+          });
+
+  	  }
+  }
+
+  request.send();
+
   </script>
 
 </body>
