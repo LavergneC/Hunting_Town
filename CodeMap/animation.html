@@ -57,61 +57,60 @@ map.on('load', function () {
           request.open('GET', 'https://dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');
           request.onreadystatechange = function () {
             if (this.readyState === 4) {
-                    console.log('Status:', this.status);
-                    console.log('Headers:', this.getAllResponseHeaders());
-                    var json = this.responseText;
-                    var obj = JSON.parse(json);
-                    var obj2 = JSON.parse(obj.data[0].data);
-                    //console.log(atob(obj2.data));
-                    var obj3 = String(atob(obj2.data));
-                    //var obj3 = "latitude:4461.1821,N longitude:00048.8561,W"
-			              console.log(obj3);
-			              var latitude_conv;
-			              var longitude_conv;
-			              var signeLat;
-			              var signeLong;
-			              var latpart1="";
-			              var latpart2="";
-			              var longpart1="";
-			              var longpart2="";
-			              var latitude_finale;
-			              var longitude_finale;
-			              //obj=JSON.parse(json);
-			              latitude_conv=obj3.split(" ")[0].split(":")[1].split(",");
-			              longitude_conv = obj3.split(" ")[1].split(":")[1].split(",");
-			              //print
-			              console.log(latitude_conv);
-			              console.log(longitude_conv);
-			              if(longitude_conv[1]=="S")
-				              signeLat=-1;
-			              else
-				              signeLat=1;
-			              if(longitude_conv[1]=="W")
-				              signeLong=-1;
-			              else
-				              signeLong=1;
-			              for (let i =0;i<2;i++) {
-				              latpart1+=latitude_conv[0][i];
-			              }
-			              for (let i =2;i<latitude_conv[0].length;i++) {
-				              latpart2+=latitude_conv[0][i];
-			              }
-			              for (let i =0;i<3;i++) {
-				              longpart1+=longitude_conv[0][i];
-			              }
-			              for (let i =3;i<longitude_conv[0].length;i++) {
-				              longpart2+=longitude_conv[0][i];
-			              }
-			              latitude_finale=parseInt(latpart1)+((parseFloat(latpart2))/60)*signeLat;
-			              longitude_finale=(parseFloat(longpart1)+(parseFloat(longpart2)/60))*signeLong;
+                console.log('Status:', this.status);
+                console.log('Headers:', this.getAllResponseHeaders());
+                var json = this.responseText;
+                var obj = JSON.parse(json);
+                var obj2 = JSON.parse(obj.data[0].data);
+                //console.log(atob(obj2.data));
+                var obj3 = String(atob(obj2.data));
+                //var obj3 = "latitude:4461.1821,N longitude:00048.8561,W"
+				console.log(obj3);
+				var latitude_conv;
+				var longitude_conv;
+				var signeLat;
+				var signeLong;
+				var latpart1="";
+				var latpart2="";
+				var longpart1="";
+				var longpart2="";
+				var latitude_finale;
+				var longitude_finale;
+				//obj=JSON.parse(json);
+				latitude_conv=obj3.split(" ")[0].split(":")[1].split(",");
+				longitude_conv = obj3.split(" ")[1].split(":")[1].split(",");
+				//print
+				console.log(latitude_conv);
+				console.log(longitude_conv);
+				if(longitude_conv[1]=="S")
+					signeLat=-1;
+				else
+					signeLat=1;
+				if(longitude_conv[1]=="W")
+					signeLong=-1;
+				else
+					signeLong=1;
+				for (let i =0;i<2;i++) {
+					latpart1+=latitude_conv[0][i];
+				}
+				for (let i =2;i<latitude_conv[0].length;i++) {
+					latpart2+=latitude_conv[0][i];
+				}
+				for (let i =0;i<3;i++) {
+					longpart1+=longitude_conv[0][i];
+				}
+				for (let i =3;i<longitude_conv[0].length;i++) {
+					longpart2+=longitude_conv[0][i];
+				}
+				latitude_finale=parseInt(latpart1)+((parseFloat(latpart2))/60)*signeLat;
+				longitude_finale=(parseFloat(longpart1)+(parseFloat(longpart2)/60))*signeLong;
 
-                    map.getSource('point').setData(pointOnCircle(latitude_finale,longitude_finale));
+                map.getSource('point').setData(pointOnCircle(latitude_finale,longitude_finale));
 
-                    // Request the next frame of the animation.
-                    requestAnimationFrame(animateMarker);
-          }
+                // Request the next frame of the animation.
+                requestAnimationFrame(animateMarker);
+            }
         }
-
         request.send();
       }
         // Start the animation.
