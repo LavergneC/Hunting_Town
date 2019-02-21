@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Animate a point</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<script>
+mapboxgl.accessToken =  'pk.eyJ1Ijoid3l6emFydCIsImEiOiJjanJqOW1hMmEwOWZkM3lseHJxdnRycTlxIn0.W7iIjOs_BO-rCL4GFwKt5Q';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v9',
+    center: [0, 0],
+    zoom: 2
+});
+
+var radius = 20;
+
+function pointOnCircle(lat,long) {
+    return {
+        "type": "Point",
+        "coordinates": [
+            long,
+            lat
+        ]
+    };
+}
+
+map.on('load', function () {
+    // Add a source and layer displaying a point which will be animated in a circle.
+    map.addSource('point', {
+        "type": "geojson",
+        "data": pointOnCircle(0)
+    });
+
+    map.addLayer({
+        "id": "point",
+        "source": "point",
+        "type": "circle",
+        "paint": {
+            "circle-radius": 10,
+            "circle-color": "#007cbf"
+        }
+    });
+
+    function animateMarker() {
+          var request = new XMLHttpRequest();
+          request.open('GET', 'https://dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');
+          request.onreadystatechange = function () {
+            if (this.readyState === 4) {
+                    console.log('Status:', this.status);
+                    console.log('Headers:', this.getAllResponseHeaders());
+                    var json = this.responseText;
+                    var obj = JSON.parse(json);
+                    var obj2 = JSON.parse(obj.data[0].data);
+                    //console.log(atob(obj2.data));
+                    var obj3 = String(atob(obj2.data));
+                    //var obj3 = "latitude:4461.1821,N longitude:00048.8561,W"
+			              console.log(obj3);
+			              var latitude_conv;
+			              var longitude_conv;
+			              var signeLat;
+			              var signeLong;
+			              var latpart1="";
+			              var latpart2="";
+			              var longpart1="";
+			              var longpart2="";
+			              var latitude_finale;
+			              var longitude_finale;
+			              //obj=JSON.parse(json);
+			              latitude_conv=obj3.split(" ")[0].split(":")[1].split(",");
+			              longitude_conv = obj3.split(" ")[1].split(":")[1].split(",");
+			              //print
+			              console.log(latitude_conv);
+			              console.log(longitude_conv);
+			              if(longitude_conv[1]=="S")
+				              signeLat=-1;
+			              else
+				              signeLat=1;
+			              if(longitude_conv[1]=="W")
+				              signeLong=-1;
+			              else
+				              signeLong=1;
+			              for (let i =0;i<2;i++) {
+				              latpart1+=latitude_conv[0][i];
+			              }
+			              for (let i =2;i<latitude_conv[0].length;i++) {
+				              latpart2+=latitude_conv[0][i];
+			              }
+			              for (let i =0;i<3;i++) {
+				              longpart1+=longitude_conv[0][i];
+			              }
+			              for (let i =3;i<longitude_conv[0].length;i++) {
+				              longpart2+=longitude_conv[0][i];
+			              }
+			              latitude_finale=parseInt(latpart1)+((parseFloat(latpart2))/60)*signeLat;
+			              longitude_finale=(parseFloat(longpart1)+(parseFloat(longpart2)/60))*signeLong;
+
+                    map.getSource('point').setData(pointOnCircle(latitude_finale,longitude_finale));
+
+                    // Request the next frame of the animation.
+                    requestAnimationFrame(animateMarker);
+          }
+        }
+
+        request.send();
+      }
+        // Start the animation.
+        animateMarker();
+    });
+
+</script>
+
+</body>
+</html>
