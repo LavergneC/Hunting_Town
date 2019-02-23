@@ -164,7 +164,7 @@ void postGPS(UART_HandleTypeDef* huart){
 
 	char commande[111] = "AT+UHTTPC=0,4,\"/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"LatitudeLongitude\",\"fileSystemName\",4\r";
 	
-  AT_command commandePost = init_AT_command(4,"AT+UHTTPC=0,4,\"/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"fileSystemName\",\"LatitudeLongitude\",4\r",AT_C_UHTTPC,4000);
+  AT_command commandePost = init_AT_command(4,"AT+UHTTPC=0,4,\"/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"fileSystemName\",\"LatitudeLongitude\",4\r",AT_C_UHTTPC,3000);
 
 	currentAT = commandePost;
 	sendAT(huart, commandePost);

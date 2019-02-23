@@ -552,14 +552,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				uartEndLine(&huart2);
 				uartEndLine(&huart2);
 				
-				/*for debug only*/
+				/*for debug only
 				char * la = "4451.1810,N";
 				for(int i = 0; i < 13; i++)
 					latitude[i] = la[i];
 				char* lo =  "00033.8545,W";
 				for(int i = 0; i < 14; i++)
 					longitude[i] = lo[i];
-				/*end debug only*/
+				end debug only*/
 				
 				flag_new_data_GPS = 1;
 			}
