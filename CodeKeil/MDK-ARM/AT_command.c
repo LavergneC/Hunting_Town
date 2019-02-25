@@ -86,7 +86,7 @@ void initLARA(UART_HandleTypeDef *huart){
 StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	int nbCommand = 10;
 	AT_command initsCommands[nbCommand];
-	int timeout_HTTP = 2;
+	int timeout_HTTP = 3;
 	int nb_init = 0;
 	
 	/* Config réseau */
@@ -119,10 +119,10 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	initsCommands[7] = init_AT_command(2, "AT+UHTTP=0,5,80\r", AT_OE, 250);
 	
 	// Résolution DNS à partir du nom du serveur
-	initsCommands[8] = init_AT_command(3, "AT+UDNSRN=0,\"dashboard.hologram.io\"\r", AT_RI_OE, 2500);
+	initsCommands[9] = init_AT_command(3, "AT+UDNSRN=0,\"dashboard.hologram.io\"\r", AT_RI_OE, 2500);
 	
 	//https -> https
-	initsCommands[9] = init_AT_command(2, "AT+UHTTP=0,6,1,2\r",AT_OE, 250);
+	initsCommands[8] = init_AT_command(2, "AT+UHTTP=0,6,1,2\r",AT_OE, 250);
 	//initsCommands[9] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", AT_C_UHTTPC, 4000);
 	
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);

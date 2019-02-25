@@ -149,7 +149,7 @@ int main(void)
 		initLARA(&huart3);
 		initStatus = initConnectionHTTP(&huart3);
 		nb_try++;
-	}while(initStatus == FAILED && nb_try < 5);
+	}while(initStatus == FAILED && nb_try < 10);
 	
 	if(initStatus == FAILED || initStatus == EN_COURS)
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init FAILED---\n\n",21,10);
@@ -420,7 +420,7 @@ void config_GPIO(void){
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
 }
 
-#define GPS_TEST_TIMEOUT 50
+#define GPS_TEST_TIMEOUT 100
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	static char premierPost = 0;
@@ -607,7 +607,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 					premierPost = 1;
 					HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
 				}
-				if (gpsFail > GPS_TEST_TIMEOUT){
+				if (gpsFail > GPS_TEST_TIMEOUT && premierPost == 0){
 					flag_reinit_GPS = 1;
 					gpsFail = 0;
 				}
