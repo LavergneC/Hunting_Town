@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=D:/ProjetsKeil/4G_01/Hunting_Town/Inc
+HeaderPath=D:/ProjetsKeil/4G_01/Hunting_Town/CodeKeil/Inc
 HeaderFiles=stm32f4xx_it.h;stm32f4xx_hal_conf.h;main.h;
-SourcePath=D:/ProjetsKeil/4G_01/Hunting_Town/Src
+SourcePath=D:/ProjetsKeil/4G_01/Hunting_Town/CodeKeil/Src
 SourceFiles=stm32f4xx_it.c;stm32f4xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]

@@ -37,10 +37,11 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
+
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-/* Private includes ----------------------------------------------------------*/
 
+/* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f4xx_hal.h"
 #include "..\MDK-ARM\AT_command.h"
@@ -51,9 +52,11 @@
 /* USER CODE BEGIN PTD */
 #define TAILLE_REPONSE 200
 /* USER CODE END PTD */
+
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 /* USER CODE END PD */
+
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 /* USER CODE END PM */
@@ -73,6 +76,7 @@ AT_command currentAT;
 int8_t latitude[12];
 int8_t longitude[13];
 uint8_t flag_new_data_GPS = 0;
+static uint8_t flag_reinit_GPS = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,7 +85,6 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USART6_UART_Init(void);
-
 /* USER CODE BEGIN PFP */
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -93,7 +96,6 @@ void initGPS(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
-
 /* USER CODE BEGIN 0 */
 char bufGPS[200];
 /* USER CODE END 0 */
@@ -105,6 +107,8 @@ char bufGPS[200];
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	
+	
 	char msg[] = "\nDebut Transmission : \n";
 	StatusAT initStatus = EN_COURS;
 	char debugStop = 0;
@@ -112,15 +116,17 @@ int main(void)
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
+
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	
   HAL_Init();
-	
+
   /* USER CODE BEGIN Init */
 	config_GPIO();
   /* USER CODE END Init */
+
   /* Configure the system clock */
   SystemClock_Config();
+
   /* USER CODE BEGIN SysInit */
   /* USER CODE END SysInit */
 
@@ -130,6 +136,9 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
+	
+	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_SET);
+	
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
 	HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Debut Init---\n\n",21,10); 
 	
@@ -148,23 +157,32 @@ int main(void)
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCCESS---\n\n",21,10); 
 	
 	initGPS();
+
+	
+	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
 	HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
-	
   /* USER CODE BEGIN WHILE */
 	//postGPS(&huart3, "12345678901","123456789012");
 	
   while (1){
-    /* USER CODE END WHILE */
-		if(flag_new_data_GPS /*&& debugStop == 0*/){
-			creationFichier(&huart3, latitude, longitude);
-		  postGPS(&huart3);
-			debugStop = 1 ;
+		if(flag_new_data_GPS == 1){
+			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_15,GPIO_PIN_SET);
+			creationFichier(&huart3,latitude,longitude);
+			postGPS(&huart3);
 			flag_new_data_GPS = 0;
+			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_15,GPIO_PIN_RESET);
 		}
-		HAL_Delay(500);
+		
+		if (flag_reinit_GPS){
+			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_SET);
+			initGPS();
+			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
+		}
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
 }
@@ -194,6 +212,8 @@ void initGPS(void)
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	HAL_Delay(100);
 	HAL_UART_Transmit(&huart2,(uint8_t*)"done\n",6,10);
+	
+	flag_reinit_GPS = 0;
 }
   /* USER CODE END 3 */
 
@@ -243,8 +263,10 @@ void SystemClock_Config(void)
   */
 static void MX_USART2_UART_Init(void)
 {
+
   /* USER CODE BEGIN USART2_Init 0 */
   /* USER CODE END USART2_Init 0 */
+
   /* USER CODE BEGIN USART2_Init 1 */
 	
   /* USER CODE END USART2_Init 1 */
@@ -262,6 +284,7 @@ static void MX_USART2_UART_Init(void)
   }
   /* USER CODE BEGIN USART2_Init 2 */
   /* USER CODE END USART2_Init 2 */
+
 }
 
 /**
@@ -271,8 +294,10 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_USART3_UART_Init(void)
 {
+
   /* USER CODE BEGIN USART3_Init 0 */
   /* USER CODE END USART3_Init 0 */
+
   /* USER CODE BEGIN USART3_Init 1 */
 
   /* USER CODE END USART3_Init 1 */
@@ -291,6 +316,7 @@ static void MX_USART3_UART_Init(void)
   /* USER CODE BEGIN USART3_Init 2 */
 	
   /* USER CODE END USART3_Init 2 */
+
 }
 
 /**
@@ -300,8 +326,10 @@ static void MX_USART3_UART_Init(void)
   */
 static void MX_USART6_UART_Init(void)
 {
+
   /* USER CODE BEGIN USART6_Init 0 */
   /* USER CODE END USART6_Init 0 */
+
   /* USER CODE BEGIN USART6_Init 1 */
 
   /* USER CODE END USART6_Init 1 */
@@ -320,6 +348,7 @@ static void MX_USART6_UART_Init(void)
   /* USER CODE BEGIN USART6_Init 2 */
 
   /* USER CODE END USART6_Init 2 */
+
 }
 
 /**
@@ -345,7 +374,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PE4 */
   GPIO_InitStruct.Pin = GPIO_PIN_4;
@@ -361,12 +390,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD12 PD13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
+  /*Configure GPIO pins : PD12 PD13 PD14 PD15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
@@ -390,7 +420,12 @@ void config_GPIO(void){
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
 }
 
+#define GPS_TEST_TIMEOUT 50
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	static char premierPost = 0;
+	static char gpsFail = 0;
+	
 	if (huart->Instance == huart3.Instance){
 		static char staking[RX_BUFFER_SIZE];
 		static unsigned short index = 0;
@@ -519,7 +554,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		
 		if((trameGlobale[index-2]=='\r') && (trameGlobale[index-1]=='\n'))
 		{
-			if(strstr((const char*)trameGlobale,"$GPRMC") && flag_new_data_GPS == 0)
+			if(strstr((const char*)trameGlobale,"$GPRMC") && flag_new_data_GPS == 0 && flag_reinit_GPS == 0)
 			{
 				for(i=7;i<15;i++)
 					heure[i-7]=trameGlobale[i];
@@ -552,6 +587,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				uartEndLine(&huart2);
 				uartEndLine(&huart2);
 				
+				if (!premierPost)
+					HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_14);
 				/*for debug only
 				char * la = "4451.1810,N";
 				for(int i = 0; i < 13; i++)
@@ -562,6 +599,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				end debug only*/
 				
 				flag_new_data_GPS = 1;
+				if(longitude[11] != 'W'){
+					flag_new_data_GPS = 0;
+					gpsFail++;
+				}
+				else if (!premierPost){
+					premierPost = 1;
+					HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
+				}
+				if (gpsFail > GPS_TEST_TIMEOUT){
+					flag_reinit_GPS = 1;
+					gpsFail = 0;
+				}
+				
 			}
 			index=0;
 			memset(trameGlobale, 0, sizeof(trameGlobale));
