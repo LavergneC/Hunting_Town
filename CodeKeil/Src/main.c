@@ -151,10 +151,15 @@ int main(void)
 		nb_try++;
 	}while(initStatus == FAILED && nb_try < 10);
 	
-	if(initStatus == FAILED || initStatus == EN_COURS)
+	if(initStatus == FAILED || initStatus == EN_COURS || nb_try == 10){
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init FAILED---\n\n",21,10);
-	else
+		HAL_GPIO_WritePin(GPIOD,GPIO_PIN_15,GPIO_PIN_SET);
+		while(1){}
+	}
+	else{
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCCESS---\n\n",21,10); 
+		
+	}
 	
 	initGPS();
 
