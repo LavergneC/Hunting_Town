@@ -198,17 +198,7 @@ void initGPS(void)
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
-	HAL_Delay(1000);
-	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
-	HAL_Delay(1000);
-	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
-	HAL_Delay(1000);
-	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
-	HAL_Delay(1000);
-	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
-	HAL_Delay(1000);
-	HAL_UART_Transmit(&huart2,(uint8_t*)".",2,10);
+	HAL_Delay(2000);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	HAL_Delay(100);
 	HAL_UART_Transmit(&huart2,(uint8_t*)"done\n",6,10);
