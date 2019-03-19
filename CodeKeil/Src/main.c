@@ -77,6 +77,7 @@ int8_t latitude[12];
 int8_t longitude[13];
 uint8_t flag_new_data_GPS = 0;
 static uint8_t flag_reinit_GPS = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -143,7 +144,7 @@ int main(void)
 	HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Debut Init---\n\n",21,10); 
 	
 	
-	do{
+	/*do{
 		if (nb_try != 0)
 			HAL_UART_Transmit(&huart2,(uint8_t*)"\n- Nouvel init...\n\n",20,10); 
 		initLARA(&huart3);
@@ -158,7 +159,10 @@ int main(void)
 	}
 	else{
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCCESS---\n\n",21,10); 
-	}
+	}*/
+	
+	initLARA(&huart3);
+	appel_via_GSM(&huart3);
 	
 	//initGPS();
 
@@ -191,7 +195,7 @@ int main(void)
 		
 		
 		*/
-		
+		HAL_Delay(30000);
 		
     /* USER CODE END WHILE */
 

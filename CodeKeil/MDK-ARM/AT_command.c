@@ -57,7 +57,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	int nb_init = 0;
 	
 	// Code Pin
-	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", AT_OE, 250);
+	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"0264\"\r", AT_OE, 250);
 	
 	initsCommands[1] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
 	
@@ -79,8 +79,8 @@ void initLARA(UART_HandleTypeDef *huart){
 	
 	}while(statusAT == FAILED && nb_init < timeout);
 	
-	currentAT = init_AT_command(2,"AT+UDELFILE=\"LatitudeLongitude\"\r",AT_OE,150);
-	sendAT(huart, currentAT);
+	/*currentAT = init_AT_command(2,"AT+UDELFILE=\"LatitudeLongitude\"\r",AT_OE,150);
+	sendAT(huart, currentAT);*/
 }
 
 StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
@@ -195,20 +195,27 @@ void appel_via_GSM(UART_HandleTypeDef *huart)
 	uint8_t nb_commands = 4;
 	AT_command commands[nb_commands];
 	
-	/* Activation de l'IMS */ 
+	/* Activation de l'IMS (pas adapté au module 3G) */ 
 	commands[0] = init_AT_command(2, "AT+UIMSCFG=0,1,50,1\r", AT_OE, 150);
 	
 	/* Connection à un réseau (sfr ou autre) */
-	commands[1] = init_AT_command(2, "AT+COPS=0\r", AT_OE, 300);
+	commands[1] = init_AT_command(2, "AT+COPS=0\r", AT_OE, 650);
 	
 	/* Configuration de l'appel en national */
 	commands[2] = init_AT_command(2, "AT+CSTA=129\r", AT_OE, 150);
 	
 	/* Appel */
-	commands[3] = init_AT_command(2, "ATD0777393585;\r", AT_OE, 50);	
+	commands[3] = init_AT_command(2, "ATD0777393585;\r", AT_OE, 150);	
 	
 	for(uint8_t index_command = 0 ; index_command < nb_commands ; index_command++){
 		currentAT = commands[index_command];
 		sendAT(huart, currentAT);
-	}	
+	}
+	flag_call = 1;  // Appel en cours
+}
+
+void hang_up_call(UART_HandleTypeDef *huart)
+{
+	currentAT = init_AT_command(2, "AT+CHUP\r", AT_OE, 150);
+	sendAT(huart, currentAT);
 }
