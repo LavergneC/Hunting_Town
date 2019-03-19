@@ -31,3 +31,4 @@ AT_command init_AT_command(int nombre_reponses, char * command, TypeATCommand ty
 StatusAT initConnectionHTTP(UART_HandleTypeDef *huart);
 void postGPS(UART_HandleTypeDef* huart);
 void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longitude);
+void appel_via_GSM(UART_HandleTypeDef *huart);

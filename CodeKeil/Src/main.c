@@ -158,14 +158,16 @@ int main(void)
 	}
 	else{
 		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCCESS---\n\n",21,10); 
-		
 	}
 	
-	initGPS();
+	//initGPS();
 
-	
 	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
-	HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,1);
+	//HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,1);
+	
+	/* Mise en place des appels */ 
+	
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -173,7 +175,7 @@ int main(void)
 	//postGPS(&huart3, "12345678901","123456789012");
 	
   while (1){
-		if(flag_new_data_GPS == 1){
+		/*if(flag_new_data_GPS == 1){
 			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_15,GPIO_PIN_SET);
 			creationFichier(&huart3,latitude,longitude);
 			postGPS(&huart3);
@@ -186,6 +188,11 @@ int main(void)
 			initGPS();
 			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
 		}
+		
+		
+		*/
+		
+		
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -50,20 +50,20 @@ void uartEndLine(UART_HandleTypeDef *huart){
 	return;
 }
 void initLARA(UART_HandleTypeDef *huart){
-	int nbCommand = 2;
+	int nbCommand = 3;
 	AT_command initsCommands[nbCommand];
 	int num_commande;
 	int timeout = 20;
 	int nb_init = 0;
 	
 	// Code Pin
-	//initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", AT_OE, 250);
+	initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", AT_OE, 250);
 	
-	initsCommands[0] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
+	initsCommands[1] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
 	
 	// Mode full fonctionnality
 
-	initsCommands[1] = init_AT_command(2,"AT+CFUN=1\r", AT_OE, 250);
+	initsCommands[2] = init_AT_command(2,"AT+CFUN=1\r", AT_OE, 250);
 	
 	do{
 		for(num_commande = 0; num_commande < nbCommand; num_commande++){
@@ -121,7 +121,7 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	// Résolution DNS à partir du nom du serveur
 	initsCommands[9] = init_AT_command(3, "AT+UDNSRN=0,\"dashboard.hologram.io\"\r", AT_RI_OE, 2500);
 	
-	//https -> https
+	//http -> https
 	initsCommands[8] = init_AT_command(2, "AT+UHTTP=0,6,1,2\r",AT_OE, 250);
 	//initsCommands[9] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", AT_C_UHTTPC, 4000);
 	
@@ -188,4 +188,27 @@ void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longit
 	HAL_UART_Transmit(huart, (uint8_t*)contenu, sizeTabChar(contenu), 10);
 	HAL_UART_Transmit(&huart2, (uint8_t*)contenu, sizeTabChar(contenu), 10);
 	uartEndLine(&huart2);
+}
+
+void appel_via_GSM(UART_HandleTypeDef *huart)
+{
+	uint8_t nb_commands = 4;
+	AT_command commands[nb_commands];
+	
+	/* Activation de l'IMS */ 
+	commands[0] = init_AT_command(2, "AT+UIMSCFG=0,1,50,1\r", AT_OE, 150);
+	
+	/* Connection à un réseau (sfr ou autre) */
+	commands[1] = init_AT_command(2, "AT+COPS=0\r", AT_OE, 300);
+	
+	/* Configuration de l'appel en national */
+	commands[2] = init_AT_command(2, "AT+CSTA=129\r", AT_OE, 150);
+	
+	/* Appel */
+	commands[3] = init_AT_command(2, "ATD0777393585;\r", AT_OE, 50);	
+	
+	for(uint8_t index_command = 0 ; index_command < nb_commands ; index_command++){
+		currentAT = commands[index_command];
+		sendAT(huart, currentAT);
+	}	
 }
