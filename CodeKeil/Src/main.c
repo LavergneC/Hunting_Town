@@ -137,11 +137,19 @@ int main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 	
-	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_SET);
 	
 	HAL_UART_Transmit(&huart2,(uint8_t*)msg,24,10); //message de début
 	HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Debut Init---\n\n",21,10); 
 	
+	/*
+	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_SET);
+	HAL_Delay(500);
+	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_13,GPIO_PIN_SET);
+		HAL_Delay(500);
+	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_SET);
+		HAL_Delay(500);
+	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_15,GPIO_PIN_SET);
+	*/
 	
 	do{
 		if (nb_try != 0)
@@ -149,21 +157,13 @@ int main(void)
 		initLARA(&huart3);
 		initStatus = initConnectionHTTP(&huart3);
 		nb_try++;
-	}while(initStatus == FAILED && nb_try < 10);
+	}while(initStatus != SUCCESS);
+	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_13,GPIO_PIN_SET);
 	
-	if(initStatus == FAILED || initStatus == EN_COURS || nb_try == 10){
-		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init FAILED---\n\n",21,10);
-		HAL_GPIO_WritePin(GPIOD,GPIO_PIN_15,GPIO_PIN_SET);
-		while(1){}
-	}
-	else{
-		HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCCESS---\n\n",21,10); 
-		
-	}
+	HAL_UART_Transmit(&huart2,(uint8_t*)"\n---Init SUCCESS---\n\n",21,10);
 	
 	initGPS();
 
-	
 	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
 	HAL_UART_Receive_IT(&huart6,(uint8_t *)bufGPS,1);
   /* USER CODE END 2 */
@@ -196,13 +196,21 @@ void initGPS(void)
 {
 	HAL_UART_Transmit(&huart2,(uint8_t*)"\n***Init-GPS***\n",17,10);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_SET);//RST=1
+	
+	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_14);
+	
 	HAL_Delay(300);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);//RST=0
+	
+	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_14);
 		
 	/*Wake up the module*/
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-	HAL_Delay(100);
+  HAL_Delay(100);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+	
+	HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_14);
+	
 	HAL_Delay(2000);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	HAL_Delay(100);
@@ -402,7 +410,6 @@ void config_GPIO(void){
 	/* Activation des modules GPIO */
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
-	
 	/* Initialisation des LEDs */
 	maLED.Pin = GPIO_PIN_10;
 	maLED.Mode = GPIO_MODE_OUTPUT_PP;
@@ -600,7 +607,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				}
 				else if (!premierPost){
 					premierPost = 1;
-					HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
 				}
 				if (gpsFail > GPS_TEST_TIMEOUT && premierPost == 0){
 					flag_reinit_GPS = 1;

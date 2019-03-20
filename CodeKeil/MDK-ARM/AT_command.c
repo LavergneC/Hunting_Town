@@ -50,7 +50,7 @@ void uartEndLine(UART_HandleTypeDef *huart){
 	return;
 }
 void initLARA(UART_HandleTypeDef *huart){
-	int nbCommand = 2;
+	int nbCommand = 3;
 	AT_command initsCommands[nbCommand];
 	int num_commande;
 	int timeout = 20;
@@ -59,14 +59,17 @@ void initLARA(UART_HandleTypeDef *huart){
 	// Code Pin
 	//initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", AT_OE, 250);
 	
-	initsCommands[0] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
+	initsCommands[2] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
 	
 	// Mode full fonctionnality
 
 	initsCommands[1] = init_AT_command(2,"AT+CFUN=1\r", AT_OE, 250);
 	
+	initsCommands[0] = init_AT_command(2,"AT+UDELFILE=\"LatitudeLongitude\"\r",AT_OE,150);
+	
 	do{
 		for(num_commande = 0; num_commande < nbCommand; num_commande++){
+			HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
 		}
@@ -77,10 +80,9 @@ void initLARA(UART_HandleTypeDef *huart){
 		else
 			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init LARA : RETRY***\n",25,10);
 	
-	}while(statusAT == FAILED && nb_init < timeout);
+	}while(statusAT != SUCCESS && nb_init < timeout);
 	
-	currentAT = init_AT_command(2,"AT+UDELFILE=\"LatitudeLongitude\"\r",AT_OE,150);
-	sendAT(huart, currentAT);
+	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_SET);
 }
 
 StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
@@ -128,6 +130,7 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);
 	do{
 		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
+			HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
 			HAL_Delay(100);
@@ -139,9 +142,9 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 			uartEndLine(&huart2);
 		}
 		nb_init++;
-	}while(statusAT == FAILED && nb_init < timeout_HTTP);
+	}while(statusAT != SUCCESS && nb_init < timeout_HTTP);
 	
-	if (nb_init >= timeout_HTTP){
+	if (nb_init >= timeout_HTTP || statusAT != SUCCESS){
 		HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : TIMEOUT***\n",27,10);
 		return FAILED;
 	}
