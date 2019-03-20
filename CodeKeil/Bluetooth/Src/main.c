@@ -68,6 +68,7 @@ static void MX_USART2_UART_Init(void);
   * @brief  The application entry point.
   * @retval int
   */
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -101,7 +102,13 @@ int main(void)
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
   /* USER CODE END 2 */
-
+	
+	uint8_t payload[3] = {0x02, 0x01,0x02};
+	uint8_t rxBuff[200];
+	
+	HAL_SPI_TransmitReceive(&hspi2,payload,rxBuff,3,10);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_SET);
+	
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -277,7 +284,10 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+	while(1){
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+		HAL_Delay(300);
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 
