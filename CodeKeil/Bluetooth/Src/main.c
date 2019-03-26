@@ -29,6 +29,10 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+#define RDYN GPIO_PIN_8
+#define REQN_CS GPIO_PIN_14
+#define RST GPIO_PIN_12
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -68,12 +72,19 @@ static void MX_USART2_UART_Init(void);
   * @brief  The application entry point.
   * @retval int
   */
-
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	uint8_t rxBuff[100];
+	rxBuff[0] = 0xCC;
+	rxBuff[1] = 0xCC;
+	rxBuff[2] = 0xCC;
+	rxBuff[3] = 0xCC;
+	rxBuff[4] = 0xCC;
+	rxBuff[5] = 0xCC;
+	rxBuff[6] = 0xCC;
 	
+	uint8_t txBuff[] = {2,0x01,0x02};
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -97,25 +108,46 @@ int main(void)
   MX_SPI2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-	
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_SET);
+		
 	//HAL_Delay(2000);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
+	
+	/* precedure de reset */ 
+	HAL_GPIO_WritePin(GPIOE, RST, GPIO_PIN_RESET);
+  HAL_Delay(500);
+	HAL_GPIO_WritePin(GPIOE, RST, GPIO_PIN_SET);
   /* USER CODE END 2 */
-	
-	uint8_t payload[3] = {0x02, 0x01,0x02};
-	uint8_t rxBuff[200];
-	
-	//HAL_SPI_TransmitReceive(&hspi2,payload,rxBuff,3,10);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_SET);
-	
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		HAL_SPI_Transmit(&hspi2,(uint8_t*)"UUUU",4,7);
-		HAL_Delay(1000);
+		//HAL_SPI_Transmit(&hspi2,(uint8_t*)"UUUU",4,7);
+		
+		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){}; // on attend un event
+		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);
+		HAL_SPI_Receive(&hspi2, rxBuff, 6,1000); // on lit l'event
+		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
+		HAL_Delay(500);
+			
+		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);// on demande à parler
+		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){};// on attend que le modile soit pret à parler
+		HAL_SPI_Transmit(&hspi2, txBuff, 3, 10); // On transmet 
+		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
+		
+			/*reset rxbuff*/
+		rxBuff[0] = 0xCC;
+		rxBuff[1] = 0xCC;
+		rxBuff[2] = 0xCC;
+		rxBuff[3] = 0xCC;
+		rxBuff[4] = 0xCC;
+		rxBuff[5] = 0xCC;
+		rxBuff[6] = 0xCC;
+		
+		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){}; // on attend un event
+		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);
+		HAL_SPI_Receive(&hspi2, rxBuff, 6,1000); // on lit l'event
+		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -246,10 +278,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-	
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_12|GPIO_PIN_14, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
@@ -260,8 +291,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PE14 */
-  GPIO_InitStruct.Pin = GPIO_PIN_14;
+  /*Configure GPIO pins : PE12 PE14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
