@@ -124,18 +124,20 @@ int main(void)
   {
 		//HAL_SPI_Transmit(&hspi2,(uint8_t*)"UUUU",4,7);
 		
+		/* On attend un event */
 		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){}; // on attend un event
 		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);
 		HAL_SPI_Receive(&hspi2, rxBuff, 6,1000); // on lit l'event
 		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
 		HAL_Delay(500);
 			
+		/* On parle puis on reçoi l'event de réponse */
 		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);// on demande à parler
 		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){};// on attend que le mudole soit pret à parler
 		HAL_SPI_Transmit(&hspi2, txBuff, 3, 10); // On transmet 
 		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
 		
-			/*reset rxbuff*/
+		/*reset rxbuff*/
 		rxBuff[0] = 0xCC;
 		rxBuff[1] = 0xCC;
 		rxBuff[2] = 0xCC;
@@ -151,6 +153,7 @@ int main(void)
 			
 		HAL_Delay(500);
 		
+		/* On parle puis on reçoi l'event de réponse */
 		txBuff[0] = 4; txBuff[1] = 0x02; txBuff[2] = 0x57; txBuff[3] = 0x58; txBuff[4] = 0x59;
 		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);// on demande à parler
 		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){};// on attend que le module soit pret à parler
