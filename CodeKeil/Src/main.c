@@ -50,11 +50,12 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define TAILLE_REPONSE 200
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define TAILLE_REPONSE 200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -77,6 +78,7 @@ int8_t latitude[12];
 int8_t longitude[13];
 uint8_t flag_new_data_GPS = 0;
 static uint8_t flag_reinit_GPS = 0;
+uint8_t flag_call;
 
 /* USER CODE END PV */
 
@@ -162,6 +164,7 @@ int main(void)
 	}*/
 	
 	initLARA(&huart3);
+	configuration_appel(&huart3);
 	appel_via_GSM(&huart3);
 	
 	//initGPS();
@@ -193,9 +196,13 @@ int main(void)
 			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
 		}
 		
-		
 		*/
-		HAL_Delay(30000);
+		if(flag_call)
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+		else
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
+		
+		HAL_Delay(1000);
 		
     /* USER CODE END WHILE */
 
@@ -437,6 +444,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		static unsigned short index = 0;
 		char flag_reset_index = 'F';
 		char flag_end_responce = 0;
+		uint8_t flag_URC = 0; 	// Type de réponse : URC
 		
 		staking[index] = rxBuffer[0];
 		
@@ -451,15 +459,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 					flag_end_responce = 1;
 		}
 		else if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O'))
-			
 			flag_end_responce = 1;
+		
+		/* Détection d'un URC */
+		else if((staking[3] == '+' || staking[4] == '+') && staking[index] == '\r'){
+			flag_end_responce = 1;
+			flag_URC = 1;
+		}
 		/*-------*/
 		
 		if (flag_end_responce){
 			/*Actions grâce aux réponses*/
 			flag_end_responce = 0;
 			static char reponses[5][TAILLE_REPONSE];
-			/* Reset de reponse*/
+			/* Reset de reponses */
 			for(short index_tab = 0; index_tab < 5; index_tab++){ //memset ?
 				for(short new_index = 0; new_index < TAILLE_REPONSE; new_index++){
 					reponses[index_tab][new_index] = 0x00;
@@ -491,8 +504,24 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			}
 			uartEndLine(&huart2);
 			
+			/* Gestion des URCs */
+			if (flag_URC){
+				if (reponses[0][1] == 'U'){		// URC de type UCALLSTAT --> Gestion de l'état des appels
+					switch(reponses[0][14]){
+						case '6':		// appel fini
+							flag_call = 0;
+							break;
+						
+						case '7' : 	// Appel qui a marché
+							flag_call = 1;
+							break;
+					}
+				}
+				flag_URC = 0; 
+			}
+			
 			/* Verification des réponses pour chaque type de commande */
-			if (currentAT.type == AT_OE || currentAT.type == AT_OE_RI){
+			else if (currentAT.type == AT_OE || currentAT.type == AT_OE_RI){
 				if (tabsEquals(reponses[1],"OK\0"))
 					statusAT = OK;
 				else
@@ -527,10 +556,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			}
 			else if (currentAT.type == AT_C_UDWNFILE){
 				statusAT = OK;
-				
-				/* On fait ça de manière à reset le buffer qui va contenir le ok de UDWNFILE */
+			
 				currentAT.type = AT_RI;
 			}
+			
+				
+			/* On fait ça de manière à reset le buffer qui va contenir le ok de UDWNFILE */
+
 			/* Reset des buffers*/
 			for(short index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
 				staking[index_tab] = 0x00;
@@ -549,6 +581,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		rxBuffer[0] = 0x00;
 	}
 	else if(huart->Instance == huart6.Instance){
+
 		static char trameGlobale[150];
 		static char heure[6];
 

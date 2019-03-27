@@ -4,7 +4,8 @@ extern UART_HandleTypeDef huart2;
 extern char rxBuffer[RX_BUFFER_SIZE];
 extern AT_command currentAT;
 extern StatusAT statusAT;
-
+extern uint8_t flag_call;
+	
 int sizeTabChar(char * s){
 	int lenght = 0;
 	while (s[lenght] != '\0')
@@ -73,9 +74,9 @@ void initLARA(UART_HandleTypeDef *huart){
 		HAL_Delay(100);
 		nb_init++;
 		if (statusAT == OK)
-			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init LARA : OK***\n\n",23,10);
+			HAL_UART_Transmit(&huart2,(uint8_t*)"*** Init LARA : OK ***\n\n",23,10);
 		else
-			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init LARA : RETRY***\n",25,10);
+			HAL_UART_Transmit(&huart2,(uint8_t*)"*** Init LARA : RETRY ***\n",25,10);
 	
 	}while(statusAT == FAILED && nb_init < timeout);
 	
@@ -190,32 +191,48 @@ void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longit
 	uartEndLine(&huart2);
 }
 
-void appel_via_GSM(UART_HandleTypeDef *huart)
+void configuration_appel(UART_HandleTypeDef *huart)
 {
 	uint8_t nb_commands = 4;
 	AT_command commands[nb_commands];
 	
-	/* Activation de l'IMS (pas adapté au module 3G) */ 
-	commands[0] = init_AT_command(2, "AT+UIMSCFG=0,1,50,1\r", AT_OE, 150);
+	/* Active l'envoi d'URC concerné par la connection au réseau */
+	commands[0] = init_AT_command(2, "AT+CREG=1\r", AT_OE, 150);
 	
-	/* Connection à un réseau (sfr ou autre) */
-	commands[1] = init_AT_command(2, "AT+COPS=0\r", AT_OE, 650);
+	/* Active l'envoi d'URC concernant les appels */
+	commands[1] = init_AT_command(2, "AT+UCALLSTAT=1\r", AT_OE, 150);
+	
+	/* Activation de l'IMS (pas adapté au module 3G) */ 
+	commands[2] = init_AT_command(2, "AT+UIMSCFG=0,1,50,1\r", AT_OE, 150);
 	
 	/* Configuration de l'appel en national */
-	commands[2] = init_AT_command(2, "AT+CSTA=129\r", AT_OE, 150);
-	
-	/* Appel */
-	commands[3] = init_AT_command(2, "ATD0777393585;\r", AT_OE, 150);	
+	commands[3] = init_AT_command(2, "AT+CSTA=129\r", AT_OE, 150);
 	
 	for(uint8_t index_command = 0 ; index_command < nb_commands ; index_command++){
 		currentAT = commands[index_command];
 		sendAT(huart, currentAT);
 	}
-	flag_call = 1;  // Appel en cours
+}
+void appel_via_GSM(UART_HandleTypeDef *huart)
+{
+	uint8_t nb_commands = 2;
+	AT_command commands[nb_commands];
+	
+	/* Connection à un réseau (sfr ou autre) */
+	commands[0] = init_AT_command(2, "AT+COPS=0\r", AT_OE, 150);
+	
+	/* Appel */
+	commands[1] = init_AT_command(2, "ATD0651920363;\r", AT_OE, 150);	
+	
+	for(uint8_t index_command = 0 ; index_command < nb_commands ; index_command++){
+		currentAT = commands[index_command];
+		sendAT(huart, currentAT);
+	}
 }
 
 void hang_up_call(UART_HandleTypeDef *huart)
 {
 	currentAT = init_AT_command(2, "AT+CHUP\r", AT_OE, 150);
 	sendAT(huart, currentAT);
+	flag_call = 0;	// Appel terminé
 }
