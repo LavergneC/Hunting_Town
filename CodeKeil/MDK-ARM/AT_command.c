@@ -193,7 +193,7 @@ void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longit
 
 void configuration_appel(UART_HandleTypeDef *huart)
 {
-	uint8_t nb_commands = 4;
+	uint8_t nb_commands = 5;
 	AT_command commands[nb_commands];
 	
 	/* Active l'envoi d'URC concerné par la connection au réseau */
@@ -207,6 +207,9 @@ void configuration_appel(UART_HandleTypeDef *huart)
 	
 	/* Configuration de l'appel en national */
 	commands[3] = init_AT_command(2, "AT+CSTA=129\r", AT_OE, 150);
+	
+	/* Réponse automatique après 2 sonneries */
+	commands[4] = init_AT_command(2, "AT+S0=2\r", AT_OE, 150);
 	
 	for(uint8_t index_command = 0 ; index_command < nb_commands ; index_command++){
 		currentAT = commands[index_command];

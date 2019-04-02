@@ -165,7 +165,7 @@ int main(void)
 	
 	initLARA(&huart3);
 	configuration_appel(&huart3);
-	appel_via_GSM(&huart3);
+	//appel_via_GSM(&huart3);
 	
 	//initGPS();
 
