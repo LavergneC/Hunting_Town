@@ -24,7 +24,7 @@ uint8_t nrf_connect_state = NRF_STATE_DISCONNECT;
 struct nrf_rx rx;
 
 static uint8_t opmode;
-//static uint8_t pipes;
+static uint8_t pipes; //useless ?
 //static uint64_t pipes_open;
 static struct nrf_tx tx;
 //static const struct service_pipe_mapping service_pipe_map[] = SERVICES_PIPE_TYPE_MAPPING_CONTENT;
@@ -66,6 +66,8 @@ int8_t nrf_reset_module(void)
  */
 int8_t nrf_setup(void)
 {
+		#warning "debugV variable"
+		int debugV = 0;
     uint8_t cnt;
     
     ble_reset_high();
@@ -77,13 +79,14 @@ int8_t nrf_setup(void)
 
     memset(&rx, 0, sizeof(rx));
     nrf_receive(&rx);
-
+		nrf_print_rx(&rx);
+	
     if (rx.data[0] != NRF_EVT_DEVICE_STARTED || rx.data[2] != NRF_ERR_NO_ERROR) {
         return -1;
     }
 
     opmode = rx.data[1];
-//    pipes = rx.data[3];
+    pipes = rx.data[3]; // pipes store DataCreditAvailable ?
 
     if (opmode != NRF_OPMODE_SETUP) {
         return -2;
@@ -91,17 +94,18 @@ int8_t nrf_setup(void)
 
     /* Send all setup data to nRF8001 */
     for (cnt = 0; cnt < NB_SETUP_MESSAGES; cnt++) {
+				HAL_Delay(1000);
+			
         memset(&rx, 0, sizeof(rx));
         memcpy(&tx, &setup_data[cnt].data, sizeof(struct nrf_tx));
-        nrf_transmit(&tx, &rx);
-
-        if (rx.length == 0) {
-            nrf_print_rx(&rx);
-            continue;
-        }
-
+        //nrf_transmit(&tx, &rx);
+				nrf_send(&tx);
+				nrf_receive(&rx);
         nrf_print_rx(&rx);
-
+			
+			if (rx.length == 0) 
+									continue;
+				
         /* Make sure transaction continue command response event is received */
         if (rx.data[0] != NRF_EVT_CMD_RESPONSE ||
             rx.data[1] != NRF_CMD_SETUP ||
@@ -109,16 +113,19 @@ int8_t nrf_setup(void)
         {
             return -3;
         }
+				else{
+					debugV++;
+				}
     }
     
     /* Receive all setup command response events */
-    do {
-        memset(&rx, 0, sizeof(rx));
-        nrf_receive(&rx);
-        nrf_print_rx(&rx);
-    } while (rx.data[0] == NRF_EVT_CMD_RESPONSE &&
-             rx.data[1] == NRF_CMD_SETUP &&
-             rx.data[2] == ACI_STATUS_TRANSACTION_CONTINUE);
+//    do {
+//        memset(&rx, 0, sizeof(rx));
+//        nrf_receive(&rx);
+//        nrf_print_rx(&rx);
+//    } while (rx.data[0] == NRF_EVT_CMD_RESPONSE &&
+//             rx.data[1] == NRF_CMD_SETUP &&
+//             rx.data[2] == ACI_STATUS_TRANSACTION_CONTINUE);
 
     /* Make sure transaction complete command response event is received */
     if (rx.data[0] != NRF_EVT_CMD_RESPONSE ||
@@ -136,12 +143,12 @@ int8_t nrf_setup(void)
 
     nrf_print_rx(&rx);
 
-    if (rx.data[2] != NRF_ERR_NO_ERROR) {
+    if (rx.data[1] != NRF_ERR_NO_ERROR) {
         return -5;
     }
 
-    opmode = rx.data[1];
-//    pipes = rx.data[3];
+    opmode = rx.data[0];
+    pipes = rx.data[1];
     
     return 0;
 }
@@ -155,6 +162,7 @@ int8_t nrf_setup(void)
  */
 void nrf_advertise(void)
 {
+	//pipes
     data16_t timeout;
     data16_t advival;
 
@@ -290,15 +298,14 @@ int8_t nrf_transmit(struct nrf_tx *tx, struct nrf_rx *rx)
         tx = &dummy_tx;
 				HAL_SPI_Receive(&hspi2, &dummyData, 1, 500); // Because we receive a random 0x01
 			  HAL_SPI_Receive(&hspi2, &rx->length, 1, 500);
-			  HAL_SPI_Receive(&hspi2, &rx->event, 1, 500);
-				HAL_SPI_Receive(&hspi2, rx->data, rx->length - 1, 500);
+			  HAL_SPI_Receive(&hspi2, &rx->data[0], rx->length , 500);
     }
 
     /*
      * Check if given rx struct is NULL and only tx is of interst.
      * Receive into global dummy_rx structure and ignore it.
      */
-    if (rx == NULL) {
+    else if (rx == NULL) {
         memset(&dummy_rx, 0, sizeof(dummy_rx));
         rx = &dummy_rx;
 			
@@ -308,8 +315,19 @@ int8_t nrf_transmit(struct nrf_tx *tx, struct nrf_rx *rx)
         //rx->data[i] = spi_transmit(tx->data[i]);
 						HAL_SPI_Transmit(&hspi2,&tx->data[i],1,10);
 				}
+		 
     }
-
+		else{
+				HAL_SPI_Transmit(&hspi2,&(tx->length),1,10);
+			  HAL_SPI_Transmit(&hspi2,&(tx->command),1,10);
+				for (i = 0; i < tx->length - 1 || i < rx->length; i++) {
+						HAL_SPI_Transmit(&hspi2,&tx->data[i],1,10);
+				}
+				HAL_SPI_Receive(&hspi2, &dummyData, 1, 500); // Because we receive a random 0x01
+			  HAL_SPI_Receive(&hspi2, &rx->length, 1, 500);
+			  HAL_SPI_Receive(&hspi2, &rx->data[0], rx->length , 500);
+		}
+				
     /*
      * Each ACI transmission consists of at least two bytes (packet length
      * and opcode). Each receiving package also has at least two bytes
@@ -470,6 +488,16 @@ void nrf_print_rx(struct nrf_rx *rx)
 //        uart_puthex(rx->data[i]);
 //    }
 //    uart_newline();
+	unsigned char i;
+	HAL_UART_Transmit(&huart2, (uint8_t*)"[",1, 10);
+	HAL_UART_Transmit(&huart2, &rx->length, 1, 10);
+	HAL_UART_Transmit(&huart2, (uint8_t*)"]", 1, 10);
+	
+	for(i=0; i < rx->length; i++){
+		HAL_UART_Transmit(&huart2, (uint8_t*)"-", 1, 10);
+		HAL_UART_Transmit(&huart2, &rx->data[i], 1, 10);
+	}
+	HAL_UART_Transmit(&huart2, (uint8_t*)"\n", 1, 10);
 }
 
 /**

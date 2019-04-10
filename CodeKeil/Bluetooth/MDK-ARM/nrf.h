@@ -63,7 +63,7 @@ struct nrf_tx {
 };
 
 struct nrf_rx {
-    uint8_t event;
+	  int8_t debug;
     uint8_t length;
     uint8_t data[30];
 };

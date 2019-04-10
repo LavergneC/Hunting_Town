@@ -76,16 +76,6 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	int8_t ret;
-	
-	uint8_t rxBuff[100];
-	rxBuff[0] = 0xCC;
-	rxBuff[1] = 0xCC;
-	rxBuff[2] = 0xCC;
-	rxBuff[3] = 0xCC;
-	rxBuff[4] = 0xCC;
-	rxBuff[5] = 0xCC;
-	rxBuff[6] = 0xCC;
 	
 //	uint8_t txBuff[10] = {2,0x01,0x02};
   /* USER CODE END 1 */
@@ -112,17 +102,14 @@ int main(void)
   MX_SPI2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-		
-	//HAL_Delay(2000);
-	//ret = nrf_setup();
-	;
+
 	/* precedure de reset */ 
 	HAL_GPIO_WritePin(GPIOE, RST, GPIO_PIN_RESET);
   HAL_Delay(500);
 	HAL_GPIO_WritePin(GPIOE, RST, GPIO_PIN_SET); 
 	 HAL_Delay(100);
 	 
-	 struct nrf_rx m_rx;
+	/* struct nrf_rx m_rx;
    memset(&m_rx, 0, sizeof(m_rx));
    nrf_receive(&m_rx);
 	
@@ -154,59 +141,14 @@ int main(void)
 	 memset(&m_rx, 0, sizeof(m_rx));
    nrf_receive(&m_rx);
 	 
-	 HAL_Delay(100);
+	 HAL_Delay(100);*/
+	 volatile int8_t debug = nrf_setup();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		//HAL_SPI_Transmit(&hspi2,(uint8_t*)"UUUU",4,7);
-		
-		/* On attend un event */
-//		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){}; // on attend un event
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);
-//		HAL_SPI_Receive(&hspi2, rxBuff, 6,1000); // on lit l'event
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
-//		HAL_Delay(100);
-//			
-//		/* On parle puis on reçoi l'event de réponse */
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);// on demande à parler
-//		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){};// on attend que le mudole soit pret à parler
-//		HAL_SPI_Transmit(&hspi2, txBuff, 3, 10); // On transmet 
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
-//		
-//		/*reset rxbuff*/
-//		rxBuff[0] = 0xCC;
-//		rxBuff[1] = 0xCC;
-//		rxBuff[2] = 0xCC;
-//		rxBuff[3] = 0xCC;
-//		rxBuff[4] = 0xCC;
-//		rxBuff[5] = 0xCC;
-//		rxBuff[6] = 0xCC;
-//		
-//		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){}; // on attend un event
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);
-//		HAL_SPI_Receive(&hspi2, rxBuff, 6, 1000); // on lit l'event
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
-//			
-//		HAL_Delay(500);
-//		
-//		/* On parle puis on reçoi l'event de réponse */
-//		txBuff[0] = 4; txBuff[1] = 0x02; txBuff[2] = 0x57; txBuff[3] = 0x58; txBuff[4] = 0x59;
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);// on demande à parler
-//		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){};// on attend que le module soit pret à parler
-//		HAL_SPI_Transmit(&hspi2, txBuff, 5, 10); // On transmet 
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
-//		
-//		while(HAL_GPIO_ReadPin(GPIOE, RDYN) != GPIO_PIN_RESET){}; // on attend un event
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_RESET);
-//		HAL_SPI_Receive(&hspi2, rxBuff, 6, 1000); // on lit l'event
-//		HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
-//			
-//		HAL_Delay(500);
-    /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
