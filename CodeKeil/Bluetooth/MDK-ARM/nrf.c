@@ -66,8 +66,6 @@ int8_t nrf_reset_module(void)
  */
 int8_t nrf_setup(void)
 {
-		#warning "debugV variable"
-		int debugV = 0;
     uint8_t cnt;
     
     ble_reset_high();
@@ -93,12 +91,12 @@ int8_t nrf_setup(void)
     }
 
     /* Send all setup data to nRF8001 */
-    for (cnt = 0; cnt < NB_SETUP_MESSAGES; cnt++) {
+    for (cnt = 0; cnt < NB_SETUP_MESSAGES - 1; cnt++) {
 				HAL_Delay(1000);
 			
         memset(&rx, 0, sizeof(rx));
         memcpy(&tx, &setup_data[cnt].data, sizeof(struct nrf_tx));
-        //nrf_transmit(&tx, &rx);
+
 				nrf_send(&tx);
 				nrf_receive(&rx);
         nrf_print_rx(&rx);
@@ -111,28 +109,23 @@ int8_t nrf_setup(void)
             rx.data[1] != NRF_CMD_SETUP ||
             rx.data[2] != ACI_STATUS_TRANSACTION_CONTINUE)
         {
-            return -3;
-        }
-				else{
-					debugV++;
+							return -3;
 				}
     }
-    
-    /* Receive all setup command response events */
-//    do {
-//        memset(&rx, 0, sizeof(rx));
-//        nrf_receive(&rx);
-//        nrf_print_rx(&rx);
-//    } while (rx.data[0] == NRF_EVT_CMD_RESPONSE &&
-//             rx.data[1] == NRF_CMD_SETUP &&
-//             rx.data[2] == ACI_STATUS_TRANSACTION_CONTINUE);
-
-    /* Make sure transaction complete command response event is received */
-    if (rx.data[0] != NRF_EVT_CMD_RESPONSE ||
+		
+		/* Send last setup command */
+		memset(&rx, 0, sizeof(rx));
+    memcpy(&tx, &setup_data[NB_SETUP_MESSAGES -1].data, sizeof(struct nrf_tx));
+		
+		nrf_send(&tx);
+		nrf_receive(&rx);
+		
+		/* Make sure transaction complete command response event is received */
+		if (rx.data[0] != NRF_EVT_CMD_RESPONSE ||
         rx.data[1] != NRF_CMD_SETUP ||
         rx.data[2] != ACI_STATUS_TRANSACTION_COMPLETE)
-    {
-        return -4;
+		{
+				return -4;
     }
 
     /* One last receive loop to wait for DeviceStartedEvent */
@@ -143,10 +136,12 @@ int8_t nrf_setup(void)
 
     nrf_print_rx(&rx);
 
-    if (rx.data[1] != NRF_ERR_NO_ERROR) {
+		if ( rx.data[0] != NRF_EVT_DEVICE_STARTED ||
+        rx.data[1] != NRF_OPMODE_STANDBY ||
+        rx.data[2] !=  NRF_ERR_NO_ERROR) 
+		{
         return -5;
     }
-
     opmode = rx.data[0];
     pipes = rx.data[1];
     
