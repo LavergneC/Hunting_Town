@@ -78,13 +78,13 @@ int8_t nrf_setup(void)
     memset(&rx, 0, sizeof(rx));
     nrf_receive(&rx);
 		nrf_print_rx(&rx);
-	
+		
+	  /*test for DeviceStartedEvent */
     if (rx.data[0] != NRF_EVT_DEVICE_STARTED || rx.data[2] != NRF_ERR_NO_ERROR) {
         return -1;
     }
-
     opmode = rx.data[1];
-    pipes = rx.data[3]; // pipes store DataCreditAvailable ?
+    pipes = rx.data[3]; // pipes store DataCreditAvailable
 
     if (opmode != NRF_OPMODE_SETUP) {
         return -2;
@@ -97,14 +97,13 @@ int8_t nrf_setup(void)
         memset(&rx, 0, sizeof(rx));
         memcpy(&tx, &setup_data[cnt].data, sizeof(struct nrf_tx));
 
-				nrf_send(&tx);
-				nrf_receive(&rx);
+				nrf_txrx(&tx,&rx);
         nrf_print_rx(&rx);
 			
-			if (rx.length == 0) 
+				if (rx.length == 0) 
 									continue;
 				
-        /* Make sure transaction continue command response event is received */
+        /* Make sure transaction continue command response event is received or TRANSACTION_CONTINUE*/
         if (rx.data[0] != NRF_EVT_CMD_RESPONSE ||
             rx.data[1] != NRF_CMD_SETUP ||
             rx.data[2] != ACI_STATUS_TRANSACTION_CONTINUE)
@@ -112,13 +111,10 @@ int8_t nrf_setup(void)
 							return -3;
 				}
     }
-		
 		/* Send last setup command */
 		memset(&rx, 0, sizeof(rx));
     memcpy(&tx, &setup_data[NB_SETUP_MESSAGES -1].data, sizeof(struct nrf_tx));
-		
-		nrf_send(&tx);
-		nrf_receive(&rx);
+		nrf_txrx(&tx,&rx);
 		
 		/* Make sure transaction complete command response event is received */
 		if (rx.data[0] != NRF_EVT_CMD_RESPONSE ||
@@ -137,8 +133,8 @@ int8_t nrf_setup(void)
     nrf_print_rx(&rx);
 
 		if ( rx.data[0] != NRF_EVT_DEVICE_STARTED ||
-        rx.data[1] != NRF_OPMODE_STANDBY ||
-        rx.data[2] !=  NRF_ERR_NO_ERROR) 
+         rx.data[1] != NRF_OPMODE_STANDBY ||
+         rx.data[2] !=  NRF_ERR_NO_ERROR) 
 		{
         return -5;
     }
@@ -244,8 +240,8 @@ void nrf_close_tx_pipes(void)
 
 
 /* Dummy tx and rx data structures */
-static struct nrf_tx dummy_tx;
-static struct nrf_rx dummy_rx;
+//static struct nrf_tx dummy_tx;
+//static struct nrf_rx dummy_rx;
 
 /**
  * nRF8001 transmission function.
@@ -284,62 +280,25 @@ int8_t nrf_transmit(struct nrf_tx *tx, struct nrf_rx *rx)
     while (rdyn_is_high()) {
         /* wait */
     }
-
     /*
      * Check if given tx struct is NULL and only rx is of interest.
-     * Use global dummy_tx struct (all fields zero) for sending.
-     */
+    */
     if (tx == NULL) {
-        tx = &dummy_tx;
 				HAL_SPI_Receive(&hspi2, &dummyData, 1, 500); // Because we receive a random 0x01
 			  HAL_SPI_Receive(&hspi2, &rx->length, 1, 500);
 			  HAL_SPI_Receive(&hspi2, &rx->data[0], rx->length , 500);
     }
-
-    /*
-     * Check if given rx struct is NULL and only tx is of interst.
-     * Receive into global dummy_rx structure and ignore it.
-     */
     else if (rx == NULL) {
-        memset(&dummy_rx, 0, sizeof(dummy_rx));
-        rx = &dummy_rx;
-			
 				HAL_SPI_Transmit(&hspi2,&(tx->length),1,10);
 			  HAL_SPI_Transmit(&hspi2,&(tx->command),1,10);
-				for (i = 0; i < tx->length - 1 || i < rx->length; i++) {
-        //rx->data[i] = spi_transmit(tx->data[i]);
+				for (i = 0; i < tx->length - 1 || i < rx->length; i++){
 						HAL_SPI_Transmit(&hspi2,&tx->data[i],1,10);
 				}
-		 
-    }
-		else{
-				HAL_SPI_Transmit(&hspi2,&(tx->length),1,10);
-			  HAL_SPI_Transmit(&hspi2,&(tx->command),1,10);
-				for (i = 0; i < tx->length - 1 || i < rx->length; i++) {
-						HAL_SPI_Transmit(&hspi2,&tx->data[i],1,10);
-				}
-				HAL_SPI_Receive(&hspi2, &dummyData, 1, 500); // Because we receive a random 0x01
-			  HAL_SPI_Receive(&hspi2, &rx->length, 1, 500);
-			  HAL_SPI_Receive(&hspi2, &rx->data[0], rx->length , 500);
-		}
-				
-    /*
-     * Each ACI transmission consists of at least two bytes (packet length
-     * and opcode). Each receiving package also has at least two bytes
-     * (event byte and receiving length, which might be zero if there is
-     * no actual data available).
-     */
-   // rx->debug  = spi_transmit(tx->length);
-		
-    //rx->length = spi_transmit(tx->command);
-    /* Send and receive data while there is data is to send or receive */
-   
-
+    }   
     reqn_set_high();
     while (rdyn_is_low()) {
         /* wait */
     }
-
     /*
      * Make sure REQN inactive time (Tcwh, nRF datasheet page 26) is given.
      * Experienced some timing issues, i.e. empty events read after requesting

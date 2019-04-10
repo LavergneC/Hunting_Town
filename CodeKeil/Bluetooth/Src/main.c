@@ -24,7 +24,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,12 +37,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -52,7 +49,6 @@ SPI_HandleTypeDef hspi2;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,12 +57,10 @@ static void MX_GPIO_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -76,8 +70,7 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	
-//	uint8_t txBuff[10] = {2,0x01,0x02};
+	volatile int setupStatus;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -93,7 +86,6 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -107,48 +99,18 @@ int main(void)
 	HAL_GPIO_WritePin(GPIOE, RST, GPIO_PIN_RESET);
   HAL_Delay(500);
 	HAL_GPIO_WritePin(GPIOE, RST, GPIO_PIN_SET); 
-	 HAL_Delay(100);
-	 
-	/* struct nrf_rx m_rx;
-   memset(&m_rx, 0, sizeof(m_rx));
-   nrf_receive(&m_rx);
-	
-	 HAL_Delay(100);
-	 
-	 struct nrf_tx m_tx;
-   memset(&m_tx, 0, sizeof(m_tx));
-	 
-	 m_tx.command = NRF_CMD_TEST;
-	 m_tx.length = 2;
-	 m_tx.data[0] = 0x02;
-   nrf_send(&m_tx);
-	 
-	 memset(&m_rx, 0, sizeof(m_rx));
-   nrf_receive(&m_rx);
-	 
-	 HAL_Delay(100);
-	 
-	 memset(&m_tx, 0, sizeof(m_tx));
-	 m_tx.command = NRF_CMD_ECHO;
-	 m_tx.length = 6;
-	 m_tx.data[0] = 0x55;
-	 m_tx.data[1] = 0x56;
-	 m_tx.data[2] = 0x57;
-	 m_tx.data[3] = 0x58;
-	 m_tx.data[4] = 0x59;
-   nrf_send(&m_tx);
-	 
-	 memset(&m_rx, 0, sizeof(m_rx));
-   nrf_receive(&m_rx);
-	 
-	 HAL_Delay(100);*/
-	 volatile int8_t debug = nrf_setup();
+	HAL_Delay(100);
+
+	setupStatus = nrf_setup();
+	if (setupStatus < 0)
+		Error_Handler();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		/* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
