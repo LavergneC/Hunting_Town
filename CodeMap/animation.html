@@ -28,6 +28,8 @@ function sleep(milliseconds) {
     }
   }
 }
+
+
 /*Creation d'un objet de la classe mapboxgl*/
 var map = new mapboxgl.Map({
     container: 'map',
@@ -68,76 +70,76 @@ map.on('load', function () {
 
     function animateMarker() {
           /*Requet à l'api d'hologram pour obtenir la latitude et la longitude du module GPS*/
-          var request = new XMLHttpRequest();
-          request.open('GET', 'https://dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');
-          request.onreadystatechange = function () {
-            if (this.readyState === 4) {
-                    console.log('Status:', this.status);
-                    console.log('Headers:', this.getAllResponseHeaders());
-                    var json = this.responseText;
-                    var obj = JSON.parse(json);
-                    var obj2 = JSON.parse(obj.data[0].data);
-                    //console.log(atob(obj2.data));
-                    var obj3 = String(atob(obj2.data));
-                    //var obj3 = "latitude:4461.1821,N longitude:00048.8561,W"
-			              console.log(obj3);
-			              var latitude_conv;
-			              var longitude_conv;
-			              var signeLat;
-			              var signeLong;
-			              var latpart1="";
-			              var latpart2="";
-			              var longpart1="";
-			              var longpart2="";
-			              var latitude_finale;
-			              var longitude_finale;
-			              /*Analyse et découpage des trames pour envoyer la latitude et la longitude sous un format compréhensible par openStreetmap(mapbox) */
-			              latitude_conv=obj3.split(" ")[0].split(":")[1].split(",");
-			              longitude_conv = obj3.split(" ")[1].split(":")[1].split(",");
-			              //print
-			              console.log(latitude_conv);
-			              console.log(longitude_conv);
-			              if(longitude_conv[1]=="S")
-				              signeLat=-1;
-			              else
-				              signeLat=1;
-			              if(longitude_conv[1]=="W")
-				              signeLong=-1;
-			              else
-				              signeLong=1;
-			              for (let i =0;i<2;i++) {
-				              latpart1+=latitude_conv[0][i];
-			              }
-			              for (let i =2;i<latitude_conv[0].length;i++) {
-				              latpart2+=latitude_conv[0][i];
-			              }
-			              for (let i =0;i<3;i++) {
-				              longpart1+=longitude_conv[0][i];
-			              }
-			              for (let i =3;i<longitude_conv[0].length;i++) {
-				              longpart2+=longitude_conv[0][i];
-			              }
-			              latitude_finale=parseInt(latpart1)+((parseFloat(latpart2))/60)*signeLat;
-			              longitude_finale=(parseFloat(longpart1)+(parseFloat(longpart2)/60))*signeLong;
 
-                    /*On affiche le point sur la carte*/
-                    map.getSource('point').setData(pointOnCircle(latitude_finale,longitude_finale));
-                    /*On centre la carte par rapport au point*/
-                    map.setCenter([longitude_finale,latitude_finale]);
-                    /*On zoom sur le point*/
-                    map.setZoom(18);
 
-                    // Request the next frame of the animation.
-                    sleep(1000);
-                    requestAnimationFrame(animateMarker);
-          }
+      /*    request.open('GET', 'https://dashboard.hologram.io/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg');  */
+                    var txt = '';
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.open("GET","TESTJS.json",true);
+                    xmlhttp.onreadystatechange = function(){
+                      if(xmlhttp.status == 200 && xmlhttp.readyState == 4){
+                        txt = xmlhttp.responseText;
+                        var obj = JSON.parse(txt);
+                        var latitude_conv;
+                        var longitude_conv;
+                        var signeLat;
+                        var signeLong;
+                        var latpart1="";
+                        var latpart2="";
+                        var longpart1="";
+                        var longpart2="";
+                        var latitude_finale;
+                        var longitude_finale;
+                        /*Analyse et découpage des trames pour envoyer la latitude et la longitude sous un format compréhensible par openStreetmap(mapbox) */
+                        latitude_conv=obj.latitude.split(",");
+                        longitude_conv = obj.longitude.split(",");
+
+                        console.log(latitude_conv);
+                        console.log(longitude_conv);
+                        if(longitude_conv[1] == "S")
+                          signeLat=-1;
+                        else
+                          signeLat=1;
+                        if(longitude_conv[1]=="W")
+                          signeLong=-1;
+                        else
+                          signeLong=1;
+                        for (let i =0;i<2;i++) {
+                          latpart1+=latitude_conv[0][i];
+                        }
+                        for (let i =2;i<latitude_conv[0].length;i++) {
+                          latpart2+=latitude_conv[0][i];
+                        }
+                        for (let i =0;i<3;i++) {
+                          longpart1+=longitude_conv[0][i];
+                        }
+                        for (let i =3;i<longitude_conv[0].length;i++) {
+                          longpart2+=longitude_conv[0][i];
+                        }
+                        latitude_finale=parseInt(latpart1)+((parseFloat(latpart2))/60)*signeLat;
+                        longitude_finale=(parseFloat(longpart1)+(parseFloat(longpart2)/60))*signeLong;
+
+                        /*On affiche le point sur la carte*/
+                        map.getSource('point').setData(pointOnCircle(latitude_finale,longitude_finale));
+                        /*On centre la carte par rapport au point*/
+                        map.setCenter([longitude_finale,latitude_finale]);
+                        /*On zoom sur le point*/
+                        map.setZoom(18);
+
+                        // Request the next frame of the animation.
+
+                        requestAnimationFrame(animateMarker);
+                      }
+                    };
+
+                    xmlhttp.send();
         }
+          
+          animateMarker();
 
-        request.send();
-      }
+        });
         // Start the animation.
-        animateMarker();
-    });
+
 
 </script>
 
