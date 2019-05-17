@@ -169,6 +169,7 @@ int main(void)
 		nrf_parse(&rx2);
 		
 		HAL_Delay(1000);
+		data ++;
 			/*
 			tx.length = 2;
 			tx.command = 0x0D; // SetLocalData
