@@ -49,6 +49,7 @@
 
 #define NRF_RX_DEFAULT_VALUE 		0xCC
 #define NRF_DATA_PING						0xFE
+#define NRF_DATA_DEFAULT				0xFF
 
 #pragma anon_unions
 
