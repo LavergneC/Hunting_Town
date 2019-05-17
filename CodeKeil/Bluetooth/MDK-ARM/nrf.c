@@ -27,7 +27,7 @@ static uint8_t opmode;
 static uint8_t pipes; //useless ?
 //static uint64_t pipes_open;
 static struct nrf_tx tx;
-//static const struct service_pipe_mapping service_pipe_map[] = SERVICES_PIPE_TYPE_MAPPING_CONTENT;
+//static const struct service_pipe_mapping service_pipe_map[3] = SERVICES_PIPE_TYPE_MAPPING_CONTENT;
 static const struct nrf_setup_data setup_data[NB_SETUP_MESSAGES] = SETUP_MESSAGES_CONTENT;
 
 
@@ -67,7 +67,7 @@ int8_t nrf_reset_module(void)
 int8_t nrf_setup(void)
 {
     uint8_t cnt;
-    
+    HAL_UART_Transmit(&huart2,(uint8_t *) "Setup Bluetooth ",17, 10); 
     ble_reset_high();
     /* 
      * data sheet says RDYN signal is not valid until 62ms after nRF reset
@@ -77,7 +77,7 @@ int8_t nrf_setup(void)
 
     memset(&rx, 0, sizeof(rx));
     nrf_receive(&rx);
-		nrf_print_rx(&rx);
+		HAL_UART_Transmit(&huart2,(uint8_t *) ".",2, 10); 
 		
 	  /*test for DeviceStartedEvent */
     if (rx.data[0] != NRF_EVT_DEVICE_STARTED || rx.data[2] != NRF_ERR_NO_ERROR) {
@@ -98,7 +98,7 @@ int8_t nrf_setup(void)
         memcpy(&tx, &setup_data[cnt].data, sizeof(struct nrf_tx));
 
 				nrf_txrx(&tx,&rx);
-        nrf_print_rx(&rx);
+        HAL_UART_Transmit(&huart2,(uint8_t *) ".",2, 10); 
 			
 				if (rx.length == 0) 
 									continue;
@@ -115,7 +115,7 @@ int8_t nrf_setup(void)
 		memset(&rx, 0, sizeof(rx));
     memcpy(&tx, &setup_data[NB_SETUP_MESSAGES -1].data, sizeof(struct nrf_tx));
 		nrf_txrx(&tx,&rx);
-		
+		HAL_UART_Transmit(&huart2,(uint8_t *) ".",2, 10); 
 		/* Make sure transaction complete command response event is received */
 		if (rx.data[0] != NRF_EVT_CMD_RESPONSE ||
         rx.data[1] != NRF_CMD_SETUP ||
@@ -129,8 +129,7 @@ int8_t nrf_setup(void)
         memset(&rx, 0, sizeof(rx));
         nrf_receive(&rx);
     } while (rx.data[0] != NRF_EVT_DEVICE_STARTED);
-
-    nrf_print_rx(&rx);
+		
 
 		if ( rx.data[0] != NRF_EVT_DEVICE_STARTED ||
          rx.data[1] != NRF_OPMODE_STANDBY ||
@@ -159,18 +158,22 @@ void nrf_advertise(void)
 
     memset(&tx, 0, sizeof(tx));
 
-    timeout.word = 0;
+    timeout.word = 60;
     advival.word = 128;
 
     tx.length = 5;
     tx.command = NRF_CMD_CONNECT;
+		//tx.command = 0x10;
+	
     /* send LSB first */
     tx.data[0] = timeout.lsb;
     tx.data[1] = timeout.msb;
     tx.data[2] = advival.lsb;
     tx.data[3] = advival.msb;
-
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
     nrf_send(&tx);
+		HAL_Delay(1000);
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
 }
 
 
@@ -198,9 +201,9 @@ uint64_t nrf_tx_pipe_map;
  * @param none
  * @return none
  */
-//void
-//nrf_tx_map_pipes(void)
-//{
+void
+nrf_tx_map_pipes(void)
+{
 //    uint8_t i;
 
 //    for (i = 0; i < NUMBER_OF_PIPES; i++) {
@@ -210,7 +213,7 @@ uint64_t nrf_tx_pipe_map;
 //            nrf_tx_pipe_map |= 1 << (i + 1);
 //        }
 //    }
-//}
+}
 
 /**
  * Internally close all ACI pipes.
@@ -284,9 +287,9 @@ int8_t nrf_transmit(struct nrf_tx *tx, struct nrf_rx *rx)
      * Check if given tx struct is NULL and only rx is of interest.
     */
     if (tx == NULL) {
-				HAL_SPI_Receive(&hspi2, &dummyData, 1, 500); // Because we receive a random 0x01
-			  HAL_SPI_Receive(&hspi2, &rx->length, 1, 500);
-			  HAL_SPI_Receive(&hspi2, &rx->data[0], rx->length , 500);
+				HAL_SPI_Receive(&hspi2, &dummyData, 1, 1500); // Because we receive a random 0x01
+			  HAL_SPI_Receive(&hspi2, &rx->length, 1, 1500);
+			  HAL_SPI_Receive(&hspi2, &rx->data[0], rx->length , 1500);
     }
     else if (rx == NULL) {
 				HAL_SPI_Transmit(&hspi2,&(tx->length),1,10);
@@ -319,38 +322,45 @@ void nrf_parse(struct nrf_rx *rx)
 {
 //    uint8_t i;
 
-//    if (rx->length == 0) {
-//        return;
-//    }
+    if (rx->length == 0) {
+        return;
+    }
 
-//    switch (rx->data[0]) {
-//        case NRF_EVT_CMD_RESPONSE:
-//            if (rx->data[1] == NRF_CMD_CONNECT &&
-//                rx->data[2] == NRF_ERR_NO_ERROR)
-//            {
-//                uart_print_pgm(string_advertising);
-//            }
-//            break;
+    switch (rx->data[0]) {
+        case NRF_EVT_CMD_RESPONSE:
+					HAL_UART_Transmit(&huart2,(uint8_t *) "NRF_EVT_CMD_RESPONSE : ", 23, 10);
+            if (rx->data[1] == NRF_CMD_CONNECT)
+            {
+                HAL_UART_Transmit(&huart2,(uint8_t *) "NRF_CMD_CONNECT, ", 18, 10);
+            }
+						if ( rx->data[2] == NRF_ERR_NO_ERROR )
+							HAL_UART_Transmit(&huart2,(uint8_t *) "NRF_NO_ERROR\n\r", 15, 10);
+						else
+							HAL_UART_Transmit(&huart2,(uint8_t *) "!NRF_ERR_ERROR!\n\r", 18, 10);
+            break;
 
-//        case NRF_EVT_CONNECTED:
-//            nrf_connect_state = NRF_STATE_CONNECTED;
+        case NRF_EVT_CONNECTED:
+            nrf_connect_state = NRF_STATE_CONNECTED;
 
-//            /* Print MAC address of new connection */
-//            uart_print_pgm(string_connection);
-//            for (i = 0; i < 5; i++) {
-//                uart_puthex(rx->data[7 - i]);
-//                uart_putchar(':');
-//            }
-//            uart_puthex(rx->data[8 - i]);
-//            uart_newline();
-//            break;
+            /* Print MAC address of new connection */
+            //uart_print_pgm(string_connection);
+           /* for (i = 0; i < 5; i++) {
+                uart_puthex(rx->data[7 - i]);
+                uart_putchar(':');
+            }
+            uart_puthex(rx->data[8 - i]);
+            uart_newline();*/
+						HAL_UART_Transmit(&huart2,(uint8_t *) "NRF_EVT_CONNECTED\n\r", 20, 10);
+						
+            break;
 
-//        case NRF_EVT_DISCONNECTED:
-//            nrf_close_tx_pipes();
-//            nrf_connect_state = NRF_STATE_DISCONNECT;
-//            break;
+        case NRF_EVT_DISCONNECTED:
+          //  nrf_close_tx_pipes();
+            nrf_connect_state = NRF_STATE_DISCONNECT;
+						HAL_UART_Transmit(&huart2,(uint8_t *) "NRF_EVT_DISCONNECTED\n\r", 23, 10);
+            break;
 
-//        case NRF_EVT_PIPE_STATUS:
+        case NRF_EVT_PIPE_STATUS:
 //            /* Assemble pipes_open information from received pipe status */
 //            for (pipes_open = 0, i = 0; i < 8; i++) {
 //                pipes_open |= rx->data[i+1] << (8 * i);
@@ -364,31 +374,39 @@ void nrf_parse(struct nrf_rx *rx)
 //                }
 //            }
 //            uart_newline();
-//            break;
+						HAL_UART_Transmit(&huart2,(uint8_t *) "NRF_EVT_PIPE_STATUS\n\r", 22, 10);
+            break;
 
-//        case NRF_EVT_DATA_RECEIVED:
-////            if (rx->data[1] == PIPE_EXAMPLE_SERVICE_PWM_DUTY_CYCLE_RX) {
-////                if (rx->data[2] > 0) {
-////                    OCR0A = rx->data[2];
-////                    TCCR0A = 0x83; // Fast PWM (mode 4), clear on match and set on bottom
-////                    TCCR0B = 0x04; // Fast PWM (mode 4), prescaler 256
-////                } else {
-////                    TCCR0A = 0x00;
-////                    TCCR0B = 0x00;
-////                    PORTD &= ~(1 << PD6);
-////                }
-////            }
-//            break;
+        case NRF_EVT_DATA_RECEIVED:
+           /* if (rx->data[1] == PIPE_EXAMPLE_SERVICE_PWM_DUTY_CYCLE_RX) {
+                if (rx->data[2] > 0) {
+                    OCR0A = rx->data[2];
+                    TCCR0A = 0x83; // Fast PWM (mode 4), clear on match and set on bottom
+                    TCCR0B = 0x04; // Fast PWM (mode 4), prescaler 256
+                } else {
+                    TCCR0A = 0x00;
+                    TCCR0B = 0x00;
+                    PORTD &= ~(1 << PD6);
+                }
+            }*/
+						HAL_UART_Transmit(&huart2,(uint8_t *) "NRF_EVT_DATA_RECEIVED\n\r", 24, 10);
+            break;
+				case NRF_EVT_PIPE_ERROR_EVENT :
+					HAL_UART_Transmit(&huart2,(uint8_t *) "NRF_EVT_PIPE_ERROR_EVENT", 25, 10);
+					if(rx->data[2] == NRF_ERR_ERROR_PIPE_TYPE_INVALID)
+						HAL_UART_Transmit(&huart2,(uint8_t *) " : NRF_ERR_ERROR_PIPE_TYPE_INVALID", 36, 10);
+					HAL_UART_Transmit(&huart2,(uint8_t *)"\n\r",3,10);
+				break;
+				case NRF_EVT_DATA_CREDIT_EVENT :
+					HAL_UART_Transmit(&huart2, (uint8_t *) "NRF_EVT_DATA_CREDIT_EVENT : ", 29, 10);
+				  HAL_UART_Transmit(&huart2, (uint8_t *) rx->data[1], 1, 10);
+					HAL_UART_Transmit(&huart2,(uint8_t *)"\n\r",3,10);
+				break;
+        default:
 
-//        default:
-//            uart_print_pgm(string_received);
-//            for (i = 0; i < rx->length; i++) {
-//                uart_putchar(' ');
-//                uart_puthex(rx->data[i]);
-//            }
-//            uart_newline();
-//            
-//    }
+				HAL_UART_Transmit(&huart2,(uint8_t *) "default\n\r", 10, 10);
+            
+    }
 }
 
 
@@ -443,13 +461,9 @@ void nrf_print_rx(struct nrf_rx *rx)
 //    }
 //    uart_newline();
 	unsigned char i;
-	HAL_UART_Transmit(&huart2, (uint8_t*)"[",1, 10);
-	HAL_UART_Transmit(&huart2, &rx->length, 1, 10);
-	HAL_UART_Transmit(&huart2, (uint8_t*)"]", 1, 10);
 	
 	for(i=0; i < rx->length; i++){
-		HAL_UART_Transmit(&huart2, (uint8_t*)"-", 1, 10);
-		HAL_UART_Transmit(&huart2, &rx->data[i], 1, 10);
+		HAL_UART_Transmit(&huart2, ".", 1, 10);
 	}
 	HAL_UART_Transmit(&huart2, (uint8_t*)"\n", 1, 10);
 }

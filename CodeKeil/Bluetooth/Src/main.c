@@ -74,7 +74,7 @@ int main(void)
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
-
+ 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
@@ -102,14 +102,87 @@ int main(void)
 	HAL_Delay(100);
 
 	setupStatus = nrf_setup();
-	if (setupStatus < 0)
+	if (setupStatus < 0){
 		Error_Handler();
+		HAL_UART_Transmit(&huart2,(uint8_t *) "ERROR\n\r",8, 10); 
+	}
+	HAL_UART_Transmit(&huart2,(uint8_t *) "OK\n\r",5, 10); 
+	
+	struct nrf_tx tx;
+	memset(&tx, 0, sizeof(tx));
+	tx.length = 1;
+	tx.command = NRF_CMD_GETDEVICEADDRESS;
+	nrf_send(&tx);
+	
+	struct nrf_rx rxAddr;
+	memset(&rxAddr, 0, sizeof(rxAddr));
+	nrf_receive(&rxAddr);
+	
+	struct nrf_rx rx1;
+	memset(&rx1, 0, sizeof(rx1));
+	struct nrf_rx rx2;
+	memset(&rx2, 0, sizeof(rx2));
+	struct nrf_rx rx3;
+	memset(&rx3, 0xCC, sizeof(rx3));
+	
+	/*
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12,GPIO_PIN_SET);
+	*/
+	nrf_advertise();
+	nrf_receive(&rx1);
+	HAL_Delay(40);
+	nrf_receive(&rx2);
+	nrf_receive(&rx3);
+	
+	
+	/*
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12,GPIO_PIN_RESET);
+	*/
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	uint8_t data = 0x56;
+	struct nrf_rx rxData;
+	memset(&rxData, 0, sizeof(rxData));
   while (1)
   {
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+		
+		memset(&tx, 0, sizeof(tx));
+
+		tx.length = 3;
+		tx.command = NRF_CMD_SEND_DATA;
+		tx.data[0] = 0x01;
+		tx.data[1] = data;
+
+		memset(&rx1, 0, sizeof(rx1));
+		memset(&rx2, 0, sizeof(rx2));
+		nrf_send(&tx);
+		
+		HAL_Delay(20);
+		nrf_receive(&rx1);
+		nrf_parse(&rx1);
+		HAL_Delay(20);
+		nrf_receive(&rx2);
+		nrf_parse(&rx2);
+		
+		HAL_Delay(1000);
+			/*
+			tx.length = 2;
+			tx.command = 0x0D; // SetLocalData
+			tx.data[0] = 0x01;
+			
+			memset(&tx, 0, sizeof(tx));
+			nrf_send(&tx);
+			
+			HAL_Delay(20);
+			memset(&rx, 0, sizeof(rx));
+			nrf_receive(&rx);
+			nrf_parse(&rx);
+			*/
+		
 		/* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
@@ -265,7 +338,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
+	
+	/*Configure GPIO pin : PD14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_14;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+	
+	GPIO_InitStruct.Pin = GPIO_PIN_0;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
 
 /* USER CODE BEGIN 4 */

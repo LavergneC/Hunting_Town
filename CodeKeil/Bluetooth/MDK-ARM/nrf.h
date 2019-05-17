@@ -30,13 +30,18 @@
 #define NRF_CMD_GET_TEMPERATURE 0x0c
 #define NRF_CMD_CONNECT         0x0f
 #define NRF_CMD_SEND_DATA       0x15
+#define NRF_CMD_GETDEVICEADDRESS 0x0A
+
 #define NRF_ERR_NO_ERROR        0x00
+#define NRF_ERR_ERROR_PIPE_TYPE_INVALID 0x95
 #define NRF_EVT_DEVICE_STARTED  0x81
 #define NRF_EVT_CMD_RESPONSE    0x84
 #define NRF_EVT_CONNECTED       0x85
 #define NRF_EVT_DISCONNECTED    0x86
 #define NRF_EVT_PIPE_STATUS     0x88
 #define NRF_EVT_DATA_RECEIVED   0x8c
+#define NRF_EVT_PIPE_ERROR_EVENT 0x8D
+#define NRF_EVT_DATA_CREDIT_EVENT 0x8A
 
 #pragma anon_unions
 
@@ -59,7 +64,7 @@ struct nrf_setup_data {
 struct nrf_tx {
     uint8_t length;
     uint8_t command;
-    uint8_t data[30];
+    uint8_t data[34];
 };
 
 struct nrf_rx {
