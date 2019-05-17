@@ -213,7 +213,8 @@ int8_t nrf_transmit(struct nrf_tx *tx, struct nrf_rx *rx)
 void nrf_parse(struct nrf_rx *rx)
 {
 	uint8_t nbCredit;
-	if (rx->length == 0 || rx->debug == (int8_t) NRF_RX_DEFAULT_VALUE) {
+	
+	if (rx->length == 0 || rx->data[1] == NRF_RX_DEFAULT_VALUE) {
 			return;
 	}
 
@@ -256,10 +257,7 @@ void nrf_parse(struct nrf_rx *rx)
 			break;
 				
 			case NRF_EVT_DATA_CREDIT_EVENT :
-				HAL_UART_Transmit(&huart2, (uint8_t *) "NRF_EVT_DATA_CREDIT_EVENT : ", 29, 10);
-				nbCredit = rx->data[1] + 0x48; 
-				HAL_UART_Transmit(&huart2, (uint8_t *) nbCredit, 1, 10);
-				HAL_UART_Transmit(&huart2,(uint8_t *)"\n\r",3,10);
+				HAL_UART_Transmit(&huart2, (uint8_t *) "NRF_EVT_DATA_CREDIT_EVENT\n\r", 26, 10);
 			break;
 			
 			default:
