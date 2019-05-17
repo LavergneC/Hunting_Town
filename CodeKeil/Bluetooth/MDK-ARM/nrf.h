@@ -43,6 +43,12 @@
 #define NRF_EVT_PIPE_ERROR_EVENT 0x8D
 #define NRF_EVT_DATA_CREDIT_EVENT 0x8A
 
+#define NRF_PIN_RDYN GPIO_PIN_8
+#define NRF_PIN_REQN_CS GPIO_PIN_14
+#define NRF_PIN_RST GPIO_PIN_12
+
+#define NRF_RX_DEFAULT_VALUE 		0xCC
+
 #pragma anon_unions
 
 typedef union {

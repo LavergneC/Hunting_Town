@@ -29,10 +29,6 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-#define RDYN GPIO_PIN_8
-#define REQN_CS GPIO_PIN_14
-#define RST GPIO_PIN_12
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -71,6 +67,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	volatile int setupStatus;
+	uint8_t dataInit = 0x55;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -90,100 +87,62 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-	HAL_GPIO_WritePin(GPIOE,REQN_CS, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOE,NRF_PIN_REQN_CS, GPIO_PIN_SET);
   MX_SPI2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
 	/* precedure de reset */ 
-	HAL_GPIO_WritePin(GPIOE, RST, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_RESET);
   HAL_Delay(500);
-	HAL_GPIO_WritePin(GPIOE, RST, GPIO_PIN_SET); 
+	HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_SET); 
 	HAL_Delay(100);
 
 	setupStatus = nrf_setup();
 	if (setupStatus < 0){
+		HAL_UART_Transmit(&huart2,(uint8_t *) "ERROR\n\r",8, 10);
 		Error_Handler();
-		HAL_UART_Transmit(&huart2,(uint8_t *) "ERROR\n\r",8, 10); 
 	}
 	HAL_UART_Transmit(&huart2,(uint8_t *) "OK\n\r",5, 10); 
 	
 	struct nrf_tx tx;
 	memset(&tx, 0, sizeof(tx));
-	tx.length = 1;
-	tx.command = NRF_CMD_GETDEVICEADDRESS;
-	nrf_send(&tx);
 	
-	struct nrf_rx rxAddr;
-	memset(&rxAddr, 0, sizeof(rxAddr));
-	nrf_receive(&rxAddr);
+	struct nrf_rx rx;
+	memset(&rx, 0, sizeof(rx));
 	
-	struct nrf_rx rx1;
-	memset(&rx1, 0, sizeof(rx1));
-	struct nrf_rx rx2;
-	memset(&rx2, 0, sizeof(rx2));
-	struct nrf_rx rx3;
-	memset(&rx3, 0xCC, sizeof(rx3));
-	
-	/*
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12,GPIO_PIN_SET);
-	*/
 	nrf_advertise();
-	nrf_receive(&rx1);
-	HAL_Delay(40);
-	nrf_receive(&rx2);
-	nrf_receive(&rx3);
+	for(unsigned char i = 0; i < 3; i++){
+		nrf_receive(&rx);
+		nrf_parse(&rx);
+		memset(&rx, 0, sizeof(rx));
+		HAL_Delay(40);
+	}	
 	
-	
-	/*
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12,GPIO_PIN_RESET);
-	*/
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	uint8_t data = 0x56;
-	struct nrf_rx rxData;
-	memset(&rxData, 0, sizeof(rxData));
-  while (1)
-  {
+  while (1){
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
 		
 		memset(&tx, 0, sizeof(tx));
 
 		tx.length = 3;
 		tx.command = NRF_CMD_SEND_DATA;
-		tx.data[0] = 0x01;
-		tx.data[1] = data;
-
-		memset(&rx1, 0, sizeof(rx1));
-		memset(&rx2, 0, sizeof(rx2));
+		tx.data[0] = PIPE_MONSERVICE_PLAYVIDEO_TX;
+		tx.data[1] = dataInit;
 		nrf_send(&tx);
 		
-		HAL_Delay(20);
-		nrf_receive(&rx1);
-		nrf_parse(&rx1);
-		HAL_Delay(20);
-		nrf_receive(&rx2);
-		nrf_parse(&rx2);
-		
-		HAL_Delay(1000);
-		data ++;
-			/*
-			tx.length = 2;
-			tx.command = 0x0D; // SetLocalData
-			tx.data[0] = 0x01;
-			
-			memset(&tx, 0, sizeof(tx));
-			nrf_send(&tx);
-			
-			HAL_Delay(20);
-			memset(&rx, 0, sizeof(rx));
+		for(unsigned char i = 0; i < 2; i++){
 			nrf_receive(&rx);
 			nrf_parse(&rx);
-			*/
+			memset(&rx, 0xCC, sizeof(rx));
+			HAL_Delay(40);
+		}
 		
+		HAL_Delay(1000);
+		dataInit ++;
 		/* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
