@@ -48,6 +48,7 @@
 #define NRF_PIN_RST GPIO_PIN_12
 
 #define NRF_RX_DEFAULT_VALUE 		0xCC
+#define NRF_DATA_PING						0xFE
 
 #pragma anon_unions
 
