@@ -192,3 +192,51 @@ void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longit
 	HAL_UART_Transmit(&huart2, (uint8_t*)contenu, sizeTabChar(contenu), 10);
 	uartEndLine(&huart2);
 }
+
+void connexion_ftp(UART_HandleTypeDef* huart)
+{
+	int nbCommand = 5;
+	AT_command initsCommands[nbCommand];
+	
+	/* Renseignement de l'adresse de l'hôte */
+	initsCommands[0] = init_AT_command(2, "AT+UFTP=1,\"demo.wftpserver.com\"\r", AT_OE, 100);
+	
+	/* Renseignement du pseudo */
+	initsCommands[1] = init_AT_command(2, "AT+UFTP=2,\"demo-user\"\r", AT_OE, 100);
+	
+	/* Renseignement du mot de passe */
+	initsCommands[2] = init_AT_command(2, "AT+UFTP=3,\"demo-user\"\r", AT_OE, 100);
+	
+	/* Mode de connexion passif */
+	initsCommands[3] = init_AT_command(2, "AT+UFTP=6,1\r", AT_OE, 100);
+	
+	/* Résolution DNS de l'hôte renseigné */
+	initsCommands[4] = init_AT_command(3, "AT+UDNSRN=0,\"demo.wftpserver.com\"\r", AT_RI_OE, 2500);
+	
+	/* Connexion au serveur FTP */
+	initsCommands[5] = init_AT_command(3, "AT+UFTPC=1\r", AT_RI_OE, 5000);
+
+	do{
+		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
+			currentAT = initsCommands[num_commande];
+			sendAT(huart, currentAT);
+			HAL_Delay(100);
+		}	
+		if (statusAT == OK)
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Connexion serveur FTP : OK***\n\n",23,10);
+		else{
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Connexion serveur FTP : RETRY***\n",23,10);
+			uartEndLine(&huart2);
+		}
+	}while(statusAT != SUCCESS);
+}
+
+void postGPS_ftp(UART_HandleTypeDef* huart)
+{
+		
+}
+
+void getVideo_ftp(UART_HandleTypeDef* huart)
+{
+	
+}
