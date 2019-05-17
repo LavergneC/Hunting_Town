@@ -211,9 +211,7 @@ int8_t nrf_transmit(struct nrf_tx *tx, struct nrf_rx *rx)
  * @return none
  */
 void nrf_parse(struct nrf_rx *rx)
-{
-	uint8_t nbCredit;
-	
+{	
 	if (rx->length == 0 || rx->data[1] == NRF_RX_DEFAULT_VALUE) {
 			return;
 	}
@@ -257,7 +255,7 @@ void nrf_parse(struct nrf_rx *rx)
 			break;
 				
 			case NRF_EVT_DATA_CREDIT_EVENT :
-				HAL_UART_Transmit(&huart2, (uint8_t *) "NRF_EVT_DATA_CREDIT_EVENT\n\r", 26, 10);
+				HAL_UART_Transmit(&huart2, (uint8_t *) "NRF_EVT_DATA_CREDIT_EVENT\n\r", 28, 10);
 			break;
 			
 			default:
@@ -266,6 +264,22 @@ void nrf_parse(struct nrf_rx *rx)
 	}
 }
 
+void nrf_manage_tx(uint8_t char_to_send){
+	memset(&tx, 0, sizeof(tx));
+
+	tx.length = 3;
+	tx.command = NRF_CMD_SEND_DATA;
+	tx.data[0] = PIPE_MONSERVICE_PLAYVIDEO_TX;
+	tx.data[1] = char_to_send;
+	nrf_send(&tx);
+	
+	for(unsigned char i = 0; i < 2; i++){
+		nrf_receive(&rx);
+		nrf_parse(&rx);
+		memset(&rx, 0xCC, sizeof(rx));
+		HAL_Delay(40);
+	}
+}
 /**
  * Print the given rx struct content.
  *

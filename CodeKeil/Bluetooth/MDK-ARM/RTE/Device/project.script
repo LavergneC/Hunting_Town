@@ -1,0 +1,4 @@
+load STM32F407VGTx 
+project name STCubeGenerated 
+project toolchain "MDK-ARM V5" 
+project path "D:\ProjetsKeil\4G_01\Hunting_Town\CodeKeil\Bluetooth\MDK-ARM\RTE\Device\STM32F407VGTx\" 

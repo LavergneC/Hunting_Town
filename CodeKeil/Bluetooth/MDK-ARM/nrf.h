@@ -83,6 +83,7 @@ struct nrf_rx {
 int8_t nrf_reset_module(void);
 int8_t nrf_setup(void);
 void nrf_advertise(void);
+void nrf_manage_tx(uint8_t char_to_send);
 
 int8_t nrf_transmit(struct nrf_tx *tx, struct nrf_rx *rx);
 #define nrf_send(tx) nrf_transmit(tx, NULL)
