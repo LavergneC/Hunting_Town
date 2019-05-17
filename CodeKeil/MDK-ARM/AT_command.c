@@ -229,14 +229,22 @@ void connexion_ftp(UART_HandleTypeDef* huart)
 			uartEndLine(&huart2);
 		}
 	}while(statusAT != SUCCESS);
+	
+	/* Une fois la connexion ftp établie, on se place dans le dossier uploads */
+	currentAT = init_AT_command(3, "AT+UFTPC=8,\"uploads\"\r", AT_RI_OE, 5000);
+	sendAT(huart, currentAT);
 }
 
 void postGPS_ftp(UART_HandleTypeDef* huart)
 {
-		
+		/* Envoi du fichier des coordonnées sur le serveur FTP */
+		currentAT = init_AT_command(3, "AT+UFTPC=5,\"gps_positions\",\"gps_positions\"\r", AT_RI_OE, 5000);
+		sendAT(huart, currentAT);
 }
 
 void getVideo_ftp(UART_HandleTypeDef* huart)
 {
-	
+	/* Récupération du numéro de la vidéo à lancer afin de l'envoyer à la BeagleBone via Bluetooth */
+	currentAT = init_AT_command(3, "AT+UFTPC=4,\"ordre_video\",\"ordre_video\"\r", AT_RI_OE, 5000);
+	sendAT(huart, currentAT);
 }
