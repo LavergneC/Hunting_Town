@@ -386,6 +386,26 @@
               <FileType>2</FileType>
               <FilePath>startup_stm32f407xx.s</FilePath>
             </File>
+            <File>
+              <FileName>AT_command.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\AT_command.c</FilePath>
+            </File>
+            <File>
+              <FileName>AT_command.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\AT_command.h</FilePath>
+            </File>
+            <File>
+              <FileName>fonctions_char.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\fonctions_char.c</FilePath>
+            </File>
+            <File>
+              <FileName>fonctions_char.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\fonctions_char.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

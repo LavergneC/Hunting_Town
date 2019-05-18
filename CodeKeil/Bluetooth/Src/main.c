@@ -49,6 +49,9 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+AT_command currentAT;
+StatusAT statusAT = EN_COURS;
+char rxBuffer[1];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

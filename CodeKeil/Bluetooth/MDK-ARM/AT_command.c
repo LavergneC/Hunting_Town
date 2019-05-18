@@ -85,8 +85,8 @@ void initLARA(UART_HandleTypeDef *huart){
 	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_SET);
 }
 
-StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
-	int nbCommand = 10;
+StatusAT initConnection(UART_HandleTypeDef *huart){
+	int nbCommand = 5;
 	AT_command initsCommands[nbCommand];
 	int timeout_HTTP = 3;
 	int nb_init = 0;
@@ -112,19 +112,19 @@ StatusAT initConnectionHTTP(UART_HandleTypeDef *huart){
 	/* Gestion de l'HTTP */
 	
 	// Reset de l'environnement HTTP
-	initsCommands[5] = init_AT_command(2, "AT+UHTTP=0\r", AT_OE, 250);
+	//initsCommands[5] = init_AT_command(2, "AT+UHTTP=0\r", AT_OE, 250);
 	
 	// Renseignement du nom du serveur
-	initsCommands[6] = init_AT_command(2, "AT+UHTTP=0,1,\"dashboard.hologram.io\"\r", AT_OE, 250);
+	//initsCommands[6] = init_AT_command(2, "AT+UHTTP=0,1,\"dashboard.hologram.io\"\r", AT_OE, 250);
 	
 	// Renseignement du port de communication HTTP
-	initsCommands[7] = init_AT_command(2, "AT+UHTTP=0,5,80\r", AT_OE, 250);
+	//initsCommands[7] = init_AT_command(2, "AT+UHTTP=0,5,80\r", AT_OE, 250);
 	
 	// Résolution DNS à partir du nom du serveur
-	initsCommands[9] = init_AT_command(3, "AT+UDNSRN=0,\"dashboard.hologram.io\"\r", AT_RI_OE, 2500);
+	//initsCommands[9] = init_AT_command(3, "AT+UDNSRN=0,\"dashboard.hologram.io\"\r", AT_RI_OE, 2500);
 	
 	//https -> https
-	initsCommands[8] = init_AT_command(2, "AT+UHTTP=0,6,1,2\r",AT_OE, 250);
+	//initsCommands[8] = init_AT_command(2, "AT+UHTTP=0,6,1,2\r",AT_OE, 250);
 	//initsCommands[9] = init_AT_command(3, "AT+UHTTPC=0,1,\"/t/2y3ax-1548855809/post\",\"filename\"\r", AT_C_UHTTPC, 4000);
 	
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);
@@ -195,7 +195,7 @@ void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longit
 
 void connexion_ftp(UART_HandleTypeDef* huart)
 {
-	int nbCommand = 5;
+	int nbCommand = 6;
 	AT_command initsCommands[nbCommand];
 	
 	/* Renseignement de l'adresse de l'hôte */
