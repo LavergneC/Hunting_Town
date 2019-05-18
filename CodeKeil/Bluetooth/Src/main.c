@@ -132,9 +132,11 @@ int main(void)
 		HAL_Delay(40);
 	}	
 	
-	nrf_manage_tx(valueBluetooth--);
+	nrf_manage_tx(NRF_DATA_DEFAULT);
 	HAL_Delay(100);
-	nrf_manage_tx(valueBluetooth--);
+	nrf_manage_tx(NRF_DATA_DEFAULT);
+	HAL_Delay(1000);
+	nrf_manage_tx(NRF_DATA_DEFAULT);
 	
   /* USER CODE END 2 */
 
@@ -151,7 +153,6 @@ int main(void)
 		
 		/* Partie 4G */
 		if(valueBluetooth != NRF_DATA_DEFAULT){
-			memset(&tx, 0, sizeof(tx));
 			nrf_manage_tx(valueBluetooth);
 			valueBluetooth = NRF_DATA_DEFAULT;
 		}
@@ -499,6 +500,8 @@ void Error_Handler(void)
 	while(1){
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
 		HAL_Delay(300);
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+		HAL_Delay(100);
 	}
   /* USER CODE END Error_Handler_Debug */
 }
