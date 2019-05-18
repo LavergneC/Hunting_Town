@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=D:/ProjetsKeil/4G_01/Hunting_Town/CodeKeil/Bluetooth/Inc
+HeaderPath=C:/Users/nicol/Hunting_Town/CodeKeil/Bluetooth/Inc
 HeaderFiles=stm32f4xx_it.h;stm32f4xx_hal_conf.h;main.h;
-SourcePath=D:/ProjetsKeil/4G_01/Hunting_Town/CodeKeil/Bluetooth/Src
+SourcePath=C:/Users/nicol/Hunting_Town/CodeKeil/Bluetooth/Src
 SourceFiles=stm32f4xx_it.c;stm32f4xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]
