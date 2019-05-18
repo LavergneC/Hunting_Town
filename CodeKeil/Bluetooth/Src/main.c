@@ -26,6 +26,7 @@
 #include "../MDK-ARM/nrf.h"
 #include "../MDK-ARM/AT_command.h"
 #include <string.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +53,10 @@ UART_HandleTypeDef huart3;
 AT_command currentAT;
 StatusAT statusAT = EN_COURS;
 char rxBuffer[1];
+
+struct nrf_tx tx;
+static uint8_t valueBluetooth = NRF_DATA_DEFAULT;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,6 +66,7 @@ static void MX_SPI2_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
+static void GPIO_Init(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -75,7 +81,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	volatile int setupStatus;
-	uint8_t dataInit = 0x55;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -99,6 +104,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+	GPIO_Init();
 
 	/* precedure de reset */ 
 	HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_RESET);
@@ -113,7 +119,6 @@ int main(void)
 	}
 	HAL_UART_Transmit(&huart2,(uint8_t *) "OK\n\r",5, 10); 
 	
-	struct nrf_tx tx;
 	memset(&tx, 0, sizeof(tx));
 	
 	struct nrf_rx rx;
@@ -127,35 +132,32 @@ int main(void)
 		HAL_Delay(40);
 	}	
 	
+	nrf_manage_tx(valueBluetooth--);
+	HAL_Delay(100);
+	nrf_manage_tx(valueBluetooth--);
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	
   while (1){
-		/* Partie Bluetooth */
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
-		
-		memset(&tx, 0, sizeof(tx));
-
-		tx.length = 3;
-		tx.command = NRF_CMD_SEND_DATA;
-		tx.data[0] = PIPE_MONSERVICE_PLAYVIDEO_TX;
-		tx.data[1] = dataInit;
-		nrf_send(&tx);
-		
-		for(unsigned char i = 0; i < 2; i++){
-			nrf_receive(&rx);
-			nrf_parse(&rx);
-			memset(&rx, 0xCC, sizeof(rx));
-			HAL_Delay(40);
+		/* Partie Bluetooth */
+		if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0) == GPIO_PIN_SET){
+			valueBluetooth = 0x55;
+			while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0) == GPIO_PIN_SET);
 		}
 		
-		HAL_Delay(1000);
-		dataInit ++;
-		
 		/* Partie 4G */
+		if(valueBluetooth != NRF_DATA_DEFAULT){
+			memset(&tx, 0, sizeof(tx));
+			nrf_manage_tx(valueBluetooth);
+			valueBluetooth = NRF_DATA_DEFAULT;
+		}
 		
-			
+		
+		HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -345,7 +347,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
 }
 
 /* USER CODE BEGIN 4 */
@@ -474,6 +475,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 }
 	
+static void GPIO_Init(void){
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	
+	/*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
 /* USER CODE END 4 */
 
 /**
