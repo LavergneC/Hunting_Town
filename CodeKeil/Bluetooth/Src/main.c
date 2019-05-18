@@ -24,6 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../MDK-ARM/nrf.h"
+#include "../MDK-ARM/AT_command.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,6 +35,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define TAILLE_REPONSE
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
