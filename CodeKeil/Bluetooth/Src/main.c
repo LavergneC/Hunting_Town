@@ -35,7 +35,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TAILLE_REPONSE
+#define TAILLE_REPONSE 200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -351,7 +351,127 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	
+	if (huart->Instance == huart3.Instance){
+		static char staking[RX_BUFFER_SIZE];
+		static unsigned short index = 0;
+		char flag_reset_index = 'F';
+		char flag_end_responce = 0;
+		
+		staking[index] = rxBuffer[0];
+		
+		/*test fin des reponses*/
+		if (currentAT.type == AT_C_UHTTPC){
+			if(staking[index-6] == ':'){
+				flag_end_responce = 1;
+			}
+		}
+		else if(currentAT.type == AT_C_UDWNFILE){
+				if (staking[index] == '>')
+					flag_end_responce = 1;
+		}
+		else if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O'))
+			flag_end_responce = 1;
+		/*-------*/
+		
+		if (flag_end_responce){
+			/*Actions grâce aux réponses*/
+			flag_end_responce = 0;
+			static char reponses[5][TAILLE_REPONSE];
+			/* Reset de reponse*/
+			for(short index_tab = 0; index_tab < 5; index_tab++){ //memset ?
+				for(short new_index = 0; new_index < TAILLE_REPONSE ; new_index++){
+					reponses[index_tab][new_index] = 0x00;
+				}
+			}
+			//volatile unsigned int nb_reponse = currentAT.nombre_reponses;
+		
+			/* récupération des réponses dans des buffers spécifiques */
+			uint8_t cptBuffer=0, cpt = 0;
+			for(unsigned short i=0 ; i<index+1 ; i++){
+				if(staking[i] == '\r' || staking[i] == '\n' || staking[i] == '\0' || staking[i] == 0x0D){
+					if(cpt != 0){
+						reponses[cptBuffer][cpt+1] = '\0';
+						cptBuffer+=1;
+						cpt = 0;
+					}
+				}
+				else{
+					reponses[cptBuffer][cpt] = staking[i];
+					cpt+=1;
+				}
+			}
+		 /* ---	---	---	---	---	---	---	---		---	---		---	---	*/
+			
+			/* Affichage des réponses */
+			for(short i = 0; i < currentAT.nombre_reponses; i++){
+					HAL_UART_Transmit(&huart2,(uint8_t*) reponses[i],sizeTabChar(reponses[i]),200);
+					uartEndLine(&huart2);
+			}
+			uartEndLine(&huart2);
+			
+			/* Verification des réponses pour chaque type de commande */
+			if (currentAT.type == AT_OE || currentAT.type == AT_OE_RI){
+				if (tabsEquals(reponses[1],"OK\0"))
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+			}
+			else if (currentAT.type == AT_RI_OE){
+				if(tabsEquals(reponses[2], "OK\0"))
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+			}
+			else if (currentAT.type == AT_C_CPIN){
+				if (tabsEquals(reponses[1], "+CPIN: READY\0"))
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+			}
+			else if(currentAT.type == AT_C_COPS || currentAT.type == AT_RI){
+				statusAT = OK;
+			}
+			else if(currentAT.type == AT_C_UHTTPC){
+				if (reponses[2][15] == '1')
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+			}
+			else if (currentAT.type ==  RI_AT_C_UHTTPC){
+				if (reponses[3][15] == '1')
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+			}
+			else if (currentAT.type == AT_C_UDWNFILE){
+				statusAT = OK;
+				
+				/* On fait ça de manière à reset le buffer qui va contenir le ok de UDWNFILE */
+				currentAT.type = AT_RI;
+			}
+			else if(currentAT.type == AT_C_UFTPC){
+				if (reponses[2][12] == '1')
+					statusAT = OK;
+				else
+					statusAT = FAILED;
+			}
+			/* Reset des buffers*/
+			for(short index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
+				staking[index_tab] = 0x00;
+			flag_reset_index = 'T';
+			/* - - - - - - - - */
+		}
+		HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
+		
+		if (flag_reset_index == 'T'){
+			flag_reset_index = 'F';
+			index = 0;
+		}
+		else
+			index++;
+
+		rxBuffer[0] = 0x00;
+}
 }
 	
 /* USER CODE END 4 */
