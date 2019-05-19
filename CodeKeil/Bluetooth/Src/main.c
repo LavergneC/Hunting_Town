@@ -106,6 +106,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	GPIO_Init();
 
+	/* init module 4g */
+	initLARA(&huart6);
+	initConnection(&huart6);
+	
+	
 	/* precedure de reset */ 
 	HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_RESET);
   HAL_Delay(500);
@@ -138,6 +143,7 @@ int main(void)
 	HAL_Delay(1000);
 	nrf_manage_tx(NRF_DATA_DEFAULT);
 	
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -156,7 +162,6 @@ int main(void)
 			nrf_manage_tx(valueBluetooth);
 			valueBluetooth = NRF_DATA_DEFAULT;
 		}
-		
 		
 		HAL_Delay(100);
     /* USER CODE END WHILE */
@@ -456,6 +461,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			else if(currentAT.type == AT_C_UFTPC){
 				if (reponses[2][12] == '1')
 					statusAT = OK;
+				else
+					statusAT = FAILED;
+			}
+			else if(currentAT.type == AT_C_URDFILE){
+				if(tabsEquals(reponses[2], "OK")){
+					statusAT = OK;
+					uint8_t value = reponses[1][30] - 48;
+					if (valueBluetooth != value)
+						valueBluetooth = value;
+				}
 				else
 					statusAT = FAILED;
 			}

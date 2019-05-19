@@ -57,9 +57,9 @@ void initLARA(UART_HandleTypeDef *huart){
 	int nb_init = 0;
 	
 	// Code Pin
-	//initsCommands[0] = init_AT_command(2,"AT+CPIN=\"1452\"\r", AT_OE, 250);
+	initsCommands[2] = init_AT_command(2,"AT+CPIN=\"0264\"\r", AT_OE, 250);
 	
-	initsCommands[2] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
+	initsCommands[3] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
 	
 	// Mode full fonctionnality
 
@@ -231,20 +231,22 @@ void connexion_ftp(UART_HandleTypeDef* huart)
 	}while(statusAT != SUCCESS);
 	
 	/* Une fois la connexion ftp établie, on se place dans le dossier uploads */
-	currentAT = init_AT_command(3, "AT+UFTPC=8,\"uploads\"\r", AT_RI_OE, 5000);
+	currentAT = init_AT_command(3, "AT+UFTPC=8,\"uploads\"\r", AT_C_UFTPC, 5000);
 	sendAT(huart, currentAT);
 }
 
 void postGPS_ftp(UART_HandleTypeDef* huart)
 {
 		/* Envoi du fichier des coordonnées sur le serveur FTP */
-		currentAT = init_AT_command(3, "AT+UFTPC=5,\"gps_positions\",\"gps_positions\"\r", AT_RI_OE, 5000);
+		currentAT = init_AT_command(3, "AT+UFTPC=5,\"gps_positions\",\"gps_positions\"\r", AT_C_UFTPC, 5000);
 		sendAT(huart, currentAT);
 }
 
 void getVideo_ftp(UART_HandleTypeDef* huart)
 {
 	/* Récupération du numéro de la vidéo à lancer afin de l'envoyer à la BeagleBone via Bluetooth */
-	currentAT = init_AT_command(3, "AT+UFTPC=4,\"ordre_video\",\"ordre_video\"\r", AT_RI_OE, 5000);
+	currentAT = init_AT_command(3, "AT+UFTPC=4,\"ordre_video\",\"ordre_video\"\r", AT_C_UFTPC, 5000);
+	sendAT(huart, currentAT);
+	currentAT = init_AT_command(3, "AT+URDFILE=\"ordre_video\"\r", AT_RI_OE, 200);
 	sendAT(huart, currentAT);
 }
