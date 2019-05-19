@@ -179,10 +179,10 @@ void postGPS(UART_HandleTypeDef* huart){
 void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longitude){
 	//char contenu[75] = "{ \"deviceid\": 199074, \"lat\": \"4451.1810,N\", \"long\": \"00033.8545,W\" }\r";
 	
-	currentAT = init_AT_command(1, "AT+UDWNFILE=\"LatitudeLongitude\",77\r", AT_C_UDWNFILE, 150);
+	currentAT = init_AT_command(1, "AT+UDWNFILE=\"coor_gps\",63\r", AT_C_UDWNFILE, 150);
 	sendAT(huart, currentAT);
 	
-	char contenu[85] = "{ \"deviceid\": 199074, \"data\": \"latitude:";
+	char contenu[71] = "{ \"deviceid\": 1, \"data\": \"latitude:";
 	myStrcat(contenu,(char*) latitude);
 	myStrcat(contenu, " longitude:");
 	myStrcat(contenu,(char*) longitude);

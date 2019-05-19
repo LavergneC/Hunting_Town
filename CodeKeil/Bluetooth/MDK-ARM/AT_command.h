@@ -12,7 +12,7 @@ Type :
 	OE -> Réponse doit affiher OK, à tester pour mettre à jour le statusAT
 	C  -> Commande particulière suivuit du nom de la commande
 */
-typedef enum {AT_C_UDWNFILE, AT_RI, AT_RI_OE, AT_OE, AT_OE_RI, AT_C_CPIN, AT_C_UHTTPC, RI_AT_C_UHTTPC, AT_C_PING, AT_C_COPS, AT_C_UFTPC}TypeATCommand;
+typedef enum {AT_C_UDWNFILE, AT_RI, AT_RI_OE, AT_OE, AT_OE_RI, AT_C_CPIN, AT_C_UHTTPC, RI_AT_C_UHTTPC, AT_C_PING, AT_C_COPS, AT_C_UFTPC, AT_C_URDFILEs}TypeATCommand;
 typedef enum {ECHO, REPONSE, OKouERR}Etat;
 typedef enum {EN_COURS, OK, FAILED}StatusAT;
 
