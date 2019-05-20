@@ -51,22 +51,22 @@ void uartEndLine(UART_HandleTypeDef *huart){
 	return;
 }
 void initLARA(UART_HandleTypeDef *huart){
-	int nbCommand = 4;
+	int nbCommand = 3;
 	AT_command initsCommands[nbCommand];
 	int num_commande;
 	int timeout = 20;
 	int nb_init = 0;
 	
 	// Code Pin
-	initsCommands[2] = init_AT_command(2,"AT+CPIN=\"0264\"\r", AT_OE, 250);
+	initsCommands[1] = init_AT_command(2,"AT+CPIN=\"0264\"\r", AT_OE, 250);
 	
-	initsCommands[3] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
+	initsCommands[2] = init_AT_command(3,"AT+CPIN?\r", AT_C_CPIN, 250);
 	
 	// Mode full fonctionnality
 
-	initsCommands[1] = init_AT_command(2,"AT+CFUN=1\r", AT_OE, 250);
+	initsCommands[0] = init_AT_command(2,"AT+CFUN=1\r", AT_OE, 250);
 	
-	initsCommands[0] = init_AT_command(2,"AT+UDELFILE=\"LatitudeLongitude\"\r",AT_OE,150);
+	//initsCommands[0] = init_AT_command(2,"AT+UDELFILE=\"LatitudeLongitude\"\r",AT_OE,150);
 	
 	do{
 		for(num_commande = 0; num_commande < nbCommand; num_commande++){
@@ -81,13 +81,13 @@ void initLARA(UART_HandleTypeDef *huart){
 		else
 			HAL_UART_Transmit(&huart2,(uint8_t*)"***Init LARA : RETRY***\n",25,10);
 	
-	}while(statusAT != SUCCESS && nb_init < timeout);
+	}while(statusAT != OK && nb_init < timeout);
 	
 	//HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_SET);
 }
 
 StatusAT initConnection(UART_HandleTypeDef *huart){
-	int nbCommand = 5;
+	int nbCommand = 2;
 	AT_command initsCommands[nbCommand];
 	int timeout_HTTP = 3;
 	int nb_init = 0;
@@ -98,17 +98,17 @@ StatusAT initConnection(UART_HandleTypeDef *huart){
 	initsCommands[0] = init_AT_command(2, "AT+COPS=0\r", AT_C_COPS, 250);
 	
 	/* AT+UPSD=0,1,"hologram" */
-	initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"sl2sfr\"\r", AT_OE, 250);
+	//initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"sl2sfr\"\r", AT_OE, 250);
 	
 	
 	/* AT+UPSDA=0,1 */
-	initsCommands[2] = init_AT_command(2, "AT+UPSDA=0,1\r", AT_OE, 250);
+	//initsCommands[2] = init_AT_command(2, "AT+UPSDA=0,1\r", AT_OE, 250);
 	
 	/* AT+UPSD=0,100,1 */
-	initsCommands[3] = init_AT_command(2, "AT+UPSD=0,100,1\r", AT_OE, 250);
+	//initsCommands[3] = init_AT_command(2, "AT+UPSD=0,100,1\r", AT_OE, 250);
 	
 	// On active le contexte PDP --> connection à l'internet
-	initsCommands[4] = init_AT_command(3, "AT+UPSDA=0,3\r", AT_OE_RI, 1000);
+	initsCommands[1] = init_AT_command(3, "AT+UPSDA=0,3\r", AT_OE_RI, 1000);
 	
 	/* Gestion de l'HTTP */
 	
@@ -143,9 +143,9 @@ StatusAT initConnection(UART_HandleTypeDef *huart){
 			uartEndLine(&huart2);
 		}
 		nb_init++;
-	}while(statusAT != SUCCESS && nb_init < timeout_HTTP);
+	}while(statusAT != OK && nb_init < timeout_HTTP);
 	
-	if (nb_init >= timeout_HTTP || statusAT != SUCCESS){
+	if (nb_init >= timeout_HTTP || statusAT != OK){
 		HAL_UART_Transmit(&huart2,(uint8_t*)"***Init HTTP : TIMEOUT***\n",27,10);
 		return FAILED;
 	}
