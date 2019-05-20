@@ -1,0 +1,15 @@
+[Desktop Entry]
+Version=1.0
+Name=Hunting Town
+GenericName=Web Browser
+Comment=Access the Internet
+Exec=/home/debian/Desktop/.script_bluetooth.sh
+Terminal=true
+X-MultipleArgs=false
+Type=Application
+Icon=ht.png
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml_xml;application/x-mimearchive;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=chromium
+StartupNotify=true
+NoDisplay=false

@@ -145,7 +145,6 @@ int main(void)
 	HAL_Delay(1000);
 	nrf_manage_tx(NRF_DATA_DEFAULT);
 	
-	
   /* USER CODE END 2 */
 
   /* Infinite loop */
