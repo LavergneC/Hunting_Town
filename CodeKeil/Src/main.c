@@ -51,6 +51,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 #define TAILLE_REPONSE 200
+#define GPS_TEST_TIMEOUT 100
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -422,7 +423,6 @@ void config_GPIO(void){
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
 }
 
-#define GPS_TEST_TIMEOUT 100
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	static char premierPost = 0;
@@ -447,7 +447,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 					flag_end_responce = 1;
 		}
 		else if((staking[index] == 'K' && staking[index-1] == 'O') || (staking[index] == 'R' && staking[index-1] == 'O'))
-			
 			flag_end_responce = 1;
 		/*-------*/
 		
@@ -465,7 +464,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		
 			/* récupération des réponses dans des buffers spécifiques */
 			uint8_t cptBuffer=0, cpt = 0;
-			for(short i=0 ; i<index+1 ; i++){
+			for(unsigned short i=0 ; i<index+1 ; i++){
 				if(staking[i] == '\r' || staking[i] == '\n' || staking[i] == '\0' || staking[i] == 0x0D){
 					if(cpt != 0){
 						reponses[cptBuffer][cpt+1] = '\0';
@@ -526,6 +525,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				
 				/* On fait ça de manière à reset le buffer qui va contenir le ok de UDWNFILE */
 				currentAT.type = AT_RI;
+			}
+			else if(currentAT.type == AT_C_UFTPC){
+				if (reponses[2][12] == '1')
+					statusAT = OK;
+				else
+					statusAT = FAILED;
 			}
 			/* Reset des buffers*/
 			for(short index_tab = 0; index_tab < RX_BUFFER_SIZE; index_tab++) //memset ?
