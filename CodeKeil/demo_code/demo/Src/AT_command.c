@@ -87,7 +87,7 @@ void initLARA(UART_HandleTypeDef *huart){
 }
 
 StatusAT initConnection(UART_HandleTypeDef *huart){
-	int nbCommand = 2;
+	int nbCommand = 5;
 	AT_command initsCommands[nbCommand];
 	int timeout_HTTP = 3;
 	int nb_init = 0;

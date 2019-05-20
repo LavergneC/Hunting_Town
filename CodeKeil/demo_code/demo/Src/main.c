@@ -46,6 +46,8 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi2;
 
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
@@ -54,6 +56,7 @@ AT_command currentAT;
 StatusAT statusAT = EN_COURS;
 char rxBuffer[1];
 static uint8_t valueBluetooth = NRF_DATA_DEFAULT;
+uint8_t bool_getVideo = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,6 +65,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_SPI2_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -78,7 +82,7 @@ static void MX_SPI2_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -87,14 +91,14 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+	
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+	
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -102,6 +106,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_SPI2_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 	
 	initLARA(&huart3);
@@ -111,7 +116,8 @@ int main(void)
 	HAL_Delay(500);
 	nrf_init_bluetooth();
 	HAL_Delay(250);
-	getVideo_ftp(&huart3);
+	__HAL_RCC_TIM2_CLK_ENABLE();
+	HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,26 +125,18 @@ int main(void)
   while (1)
   {
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
-		/* Partie Bluetooth */
-		if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0) == GPIO_PIN_SET){
-			static char pre = 0x00;
-			
-			if (pre == 0x00)
-				valueBluetooth = 0x01;
-			else if (pre == 0x01)
-				valueBluetooth = 0x02;
-			else if (pre == 0x02)
-				valueBluetooth = 0x03;
-			else 
-				valueBluetooth = 0x01;
-			pre = valueBluetooth;
-			while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0) == GPIO_PIN_SET);
+		
+		if(bool_getVideo){
+			getVideo_ftp(&huart3);
+			HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+			bool_getVideo = 0;
 		}
 		
-		/* Partie 4G */
 		if(valueBluetooth != NRF_DATA_DEFAULT){
 			nrf_manage_tx(valueBluetooth);
 			valueBluetooth = NRF_DATA_DEFAULT;
+			HAL_UART_Transmit(&huart2, (uint8_t*)"on vient d'envoyer\n", 19, 10);
+			HAL_TIM_Base_Start_IT(&htim2);
 		}
 		
 		HAL_Delay(100);
@@ -226,6 +224,51 @@ static void MX_SPI2_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 750;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 64000;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -307,13 +350,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10|GPIO_PIN_12|GPIO_PIN_14, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -321,14 +364,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PE7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  /*Configure GPIO pins : PE7 PE8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PE10 */
-  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  /*Configure GPIO pins : PE10 PE12 PE14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_12|GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -341,8 +384,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PD12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  /*Configure GPIO pins : PD12 PD13 PD14 PD15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -464,8 +507,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			else if(currentAT.type == AT_C_URDFILE){
 				if(tabsEquals(reponses[2], "OK")){
 					statusAT = OK;
+					static uint8_t old_value = 0;
 					uint8_t value = reponses[1][28] - 48;
-					valueBluetooth = value;
+					if(value != old_value){
+						valueBluetooth = value;
+						old_value = value;
+						HAL_UART_Transmit(&huart2, (uint8_t*)"On va envoyer\n",14,1); 
+					}
 				}
 				else
 					statusAT = FAILED;
@@ -476,7 +524,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			flag_reset_index = 'T';
 			/* - - - - - - - - */
 		}
-		HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
 		
 		if (flag_reset_index == 'T'){
 			flag_reset_index = 'F';
@@ -487,6 +534,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 
 		rxBuffer[0] = 0x00;
 	}
+	
+	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(htim);
+
+	bool_getVideo = 1;
+	
 }
 /* USER CODE END 4 */
 
@@ -498,7 +556,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
   /* USER CODE END Error_Handler_Debug */
 }
 
