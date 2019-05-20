@@ -12,14 +12,11 @@ expect "# "
 while { 1 } {
 	set boucle 1
 	while { $connecte == 0 } {
-	    puts "connect..."
 	    send "connect F7:2E:52:00:47:AA\r"
 	    expect {
 	    	"No device connected" {
-			puts "rate1"
 	    	}
 		"Error.Failed" {
-			puts "rate2"
 		}
 	    	"Connection successful" {
 	        	set connecte 1
