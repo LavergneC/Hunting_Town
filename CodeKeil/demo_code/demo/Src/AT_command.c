@@ -215,7 +215,7 @@ void connexion_ftp(UART_HandleTypeDef* huart)
 	initsCommands[4] = init_AT_command(3, "AT+UDNSRN=0,\"demo.wftpserver.com\"\r", AT_RI_OE, 2500);
 	
 	/* Connexion au serveur FTP */
-	initsCommands[5] = init_AT_command(3, "AT+UFTPC=1\r", AT_RI_OE, 5000);
+	initsCommands[5] = init_AT_command(3, "AT+UFTPC=1\r", AT_C_UFTPC, 10000);
 
 	do{
 		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
@@ -224,16 +224,24 @@ void connexion_ftp(UART_HandleTypeDef* huart)
 			HAL_Delay(100);
 		}	
 		if (statusAT == OK)
-			HAL_UART_Transmit(&huart2,(uint8_t*)"***Connexion serveur FTP : OK***\n\n",23,10);
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Connexion serveur FTP : OK***\n\n",35,10);
 		else{
-			HAL_UART_Transmit(&huart2,(uint8_t*)"***Connexion serveur FTP : RETRY***\n",23,10);
+			HAL_UART_Transmit(&huart2,(uint8_t*)"***Connexion serveur FTP : RETRY***\n",36,10);
 			uartEndLine(&huart2);
 		}
-	}while(statusAT != SUCCESS);
+	}while(statusAT != OK);
+	
+	HAL_UART_Transmit(&huart2, (uint8_t*)"On va dans uploads\n", 19, 1);
 	
 	/* Une fois la connexion ftp établie, on se place dans le dossier uploads */
-	currentAT = init_AT_command(3, "AT+UFTPC=8,\"uploads\"\r", AT_C_UFTPC, 5000);
+	currentAT = init_AT_command(3, "AT+UFTPC=8,\"upload\"\r", AT_C_UFTPC, 15000);
 	sendAT(huart, currentAT);
+	if(statusAT == OK)
+		HAL_UART_Transmit(&huart2,(uint8_t*)"***Deplacement dossier : OK***\n\n",32,10);
+	else if(statusAT == FAILED)
+		HAL_UART_Transmit(&huart2,(uint8_t*)"***Deplacement dossier : FAILED***\n\n",35,10);
+	else
+		HAL_UART_Transmit(&huart2,(uint8_t*)"***Deplacement dossier : CHELOU***\n\n",35,10);
 }
 
 void postGPS_ftp(UART_HandleTypeDef* huart)

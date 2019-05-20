@@ -106,8 +106,11 @@ int main(void)
 	
 	initLARA(&huart3);
 	initConnection(&huart3);
+	connexion_ftp(&huart3);
 	
 	nrf_init_bluetooth();
+	
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -362,6 +365,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				flag_end_responce = 1;
 			}
 		}
+		else if(currentAT.type == AT_C_UFTPC){
+			if(staking[index-1] == ',' && staking[index] == '1')
+				flag_end_responce = 1;
+		}
+			
 		else if(currentAT.type == AT_C_UDWNFILE){
 				if (staking[index] == '>')
 					flag_end_responce = 1;
