@@ -86,6 +86,7 @@ int8_t nrf_reset_module(void);
 int8_t nrf_setup(void);
 void nrf_advertise(void);
 void nrf_manage_tx(uint8_t char_to_send);
+void nrf_init_bluetooth(void);
 
 int8_t nrf_transmit(struct nrf_tx *tx, struct nrf_rx *rx);
 #define nrf_send(tx) nrf_transmit(tx, NULL)
@@ -107,12 +108,12 @@ extern SPI_HandleTypeDef hspi2;
 //#define led_connect_on()    do { PORTD |= 0x10; } while (0)
 //#define led_connect_off()   do { PORTD &= ~(0x10); } while (0)
 
-#define ble_reset_high()    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_12, GPIO_PIN_SET);
-#define ble_reset_low()     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_12, GPIO_PIN_RESET)
-#define reqn_set_high()     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_SET)
-#define reqn_set_low()      HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_RESET)
-#define rdyn_is_high()      (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_8) == GPIO_PIN_SET)
-#define rdyn_is_low()       (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_8) == GPIO_PIN_RESET)
+#define ble_reset_high()    HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_SET);
+#define ble_reset_low()     HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_RESET)
+#define reqn_set_high()     HAL_GPIO_WritePin(GPIOB, NRF_PIN_REQN_CS, GPIO_PIN_SET)
+#define reqn_set_low()      HAL_GPIO_WritePin(GPIOB, NRF_PIN_REQN_CS, GPIO_PIN_RESET)
+#define rdyn_is_high()      (HAL_GPIO_ReadPin(GPIOE, NRF_PIN_RDYN) == GPIO_PIN_SET)
+#define rdyn_is_low()       (HAL_GPIO_ReadPin(GPIOE, NRF_PIN_RDYN) == GPIO_PIN_RESET)
 
 
 //struct service_pipe_mapping {

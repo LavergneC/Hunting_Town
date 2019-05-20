@@ -297,3 +297,38 @@ void nrf_print_rx(struct nrf_rx *rx)
 	}
 	HAL_UART_Transmit(&huart2, (uint8_t*)"\n", 1, 10);
 }
+
+void nrf_init_bluetooth(void){
+	volatile int setupStatus;
+		/* precedure de reset */ 
+	HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_RESET);
+  HAL_Delay(500);
+	HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_SET); 
+	HAL_Delay(100);
+
+	setupStatus = nrf_setup();
+	if (setupStatus < 0){
+		HAL_UART_Transmit(&huart2,(uint8_t *) "ERROR\n\r",8, 10);
+		Error_Handler();
+	}
+	HAL_UART_Transmit(&huart2,(uint8_t *) "OK\n\r",5, 10); 
+	
+	memset(&tx, 0, sizeof(tx));
+	
+	struct nrf_rx rx;
+	memset(&rx, 0, sizeof(rx));
+	
+	nrf_advertise();
+	for(unsigned char i = 0; i < 3; i++){
+		nrf_receive(&rx);
+		nrf_parse(&rx);
+		memset(&rx, 0, sizeof(rx));
+		HAL_Delay(40);
+	}	
+	
+	nrf_manage_tx(NRF_DATA_DEFAULT);
+	HAL_Delay(100);
+	nrf_manage_tx(NRF_DATA_DEFAULT);
+	HAL_Delay(1000);
+	nrf_manage_tx(NRF_DATA_DEFAULT);
+}

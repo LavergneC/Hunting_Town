@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "AT_command.h"
+#include "nrf.h"
 //#include "nrf.h"
 /* USER CODE END Includes */
 
@@ -52,9 +53,7 @@ UART_HandleTypeDef huart3;
 AT_command currentAT;
 StatusAT statusAT = EN_COURS;
 char rxBuffer[1];
-
-//struct nrf_tx tx;
-//static uint8_t valueBluetooth = NRF_DATA_DEFAULT;
+static uint8_t valueBluetooth = NRF_DATA_DEFAULT;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,13 +107,37 @@ int main(void)
 	initLARA(&huart3);
 	initConnection(&huart3);
 	
-	
+	nrf_init_bluetooth();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+		/* Partie Bluetooth */
+		if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0) == GPIO_PIN_SET){
+			static char pre = 0x00;
+			
+			if (pre == 0x00)
+				valueBluetooth = 0x01;
+			else if (pre == 0x01)
+				valueBluetooth = 0x02;
+			else if (pre == 0x02)
+				valueBluetooth = 0x03;
+			else 
+				valueBluetooth = 0x01;
+			pre = valueBluetooth;
+			while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0) == GPIO_PIN_SET);
+		}
+		
+		/* Partie 4G */
+		if(valueBluetooth != NRF_DATA_DEFAULT){
+			nrf_manage_tx(valueBluetooth);
+			valueBluetooth = NRF_DATA_DEFAULT;
+		}
+		
+		HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
