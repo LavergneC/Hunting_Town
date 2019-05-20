@@ -98,17 +98,17 @@ StatusAT initConnection(UART_HandleTypeDef *huart){
 	initsCommands[0] = init_AT_command(2, "AT+COPS=0\r", AT_C_COPS, 250);
 	
 	/* AT+UPSD=0,1,"hologram" */
-	//initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"sl2sfr\"\r", AT_OE, 250);
+	initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"sl2sfr\"\r", AT_OE, 250);
 	
 	
 	/* AT+UPSDA=0,1 */
-	//initsCommands[2] = init_AT_command(2, "AT+UPSDA=0,1\r", AT_OE, 250);
+	initsCommands[2] = init_AT_command(2, "AT+UPSDA=0,1\r", AT_OE, 250);
 	
 	/* AT+UPSD=0,100,1 */
-	//initsCommands[3] = init_AT_command(2, "AT+UPSD=0,100,1\r", AT_OE, 250);
+	initsCommands[3] = init_AT_command(2, "AT+UPSD=0,100,1\r", AT_OE, 250);
 	
 	// On active le contexte PDP --> connection à l'internet
-	initsCommands[1] = init_AT_command(3, "AT+UPSDA=0,3\r", AT_OE_RI, 1000);
+	initsCommands[4] = init_AT_command(3, "AT+UPSDA=0,3\r", AT_OE_RI, 1000);
 	
 	/* Gestion de l'HTTP */
 	
@@ -254,8 +254,15 @@ void postGPS_ftp(UART_HandleTypeDef* huart)
 void getVideo_ftp(UART_HandleTypeDef* huart)
 {
 	/* Récupération du numéro de la vidéo à lancer afin de l'envoyer à la BeagleBone via Bluetooth */
+	do{
 	currentAT = init_AT_command(3, "AT+UFTPC=4,\"ordre_video\",\"ordre_video\"\r", AT_C_UFTPC, 5000);
 	sendAT(huart, currentAT);
-	currentAT = init_AT_command(3, "AT+URDFILE=\"ordre_video\"\r", AT_RI_OE, 200);
+	if(statusAT == OK)
+		HAL_UART_Transmit(&huart2,(uint8_t*)"***Recuperation video : OK***\n\n",31,10);
+	else
+		HAL_UART_Transmit(&huart2,(uint8_t*)"***Recuperation video : RETRY***\n\n",34,10);
+	}while(statusAT != OK);
+	
+	currentAT = init_AT_command(3, "AT+URDFILE=\"ordre_video\"\r", AT_C_URDFILE, 200);
 	sendAT(huart, currentAT);
 }

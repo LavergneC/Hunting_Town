@@ -108,9 +108,10 @@ int main(void)
 	initConnection(&huart3);
 	connexion_ftp(&huart3);
 	
+	HAL_Delay(500);
 	nrf_init_bluetooth();
-	
-	
+	HAL_Delay(250);
+	getVideo_ftp(&huart3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -463,9 +464,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			else if(currentAT.type == AT_C_URDFILE){
 				if(tabsEquals(reponses[2], "OK")){
 					statusAT = OK;
-					uint8_t value = reponses[1][30] - 48;
-/*					if (valueBluetooth != value)
-						valueBluetooth = value;*/
+					uint8_t value = reponses[1][28] - 48;
+					valueBluetooth = value;
 				}
 				else
 					statusAT = FAILED;
