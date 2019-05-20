@@ -50,7 +50,7 @@ void uartEndLine(UART_HandleTypeDef *huart){
 	return;
 }
 void initLARA(UART_HandleTypeDef *huart){
-	int nbCommand = 3;
+	int nbCommand = 4;
 	AT_command initsCommands[nbCommand];
 	int num_commande;
 	int timeout = 20;
@@ -69,7 +69,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	
 	do{
 		for(num_commande = 0; num_commande < nbCommand; num_commande++){
-			HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
+			//HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
 		}
@@ -82,7 +82,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	
 	}while(statusAT != SUCCESS && nb_init < timeout);
 	
-	HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12,GPIO_PIN_SET);
 }
 
 StatusAT initConnection(UART_HandleTypeDef *huart){
@@ -94,10 +94,10 @@ StatusAT initConnection(UART_HandleTypeDef *huart){
 	/* Config réseau */
 	
 	// Automatic network registration
-	initsCommands[0] = init_AT_command(2, "AT+COPS=0,0\r", AT_C_COPS, 250);
+	initsCommands[0] = init_AT_command(2, "AT+COPS=0\r", AT_C_COPS, 250);
 	
 	/* AT+UPSD=0,1,"hologram" */
-	initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"hologram\"\r", AT_OE, 250);
+	initsCommands[1] = init_AT_command(2, "AT+UPSD=0,1,\"sl2sfr\"\r", AT_OE, 250);
 	
 	
 	/* AT+UPSDA=0,1 */
@@ -130,7 +130,7 @@ StatusAT initConnection(UART_HandleTypeDef *huart){
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);
 	do{
 		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
-			HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
+			//HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
 			HAL_Delay(100);
@@ -165,7 +165,7 @@ AT_command init_AT_command(int nombre_reponses, char * command, TypeATCommand ty
 
 void postGPS(UART_HandleTypeDef* huart){
 
-	char commande[111] = "AT+UHTTPC=0,4,\"/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"LatitudeLongitude\",\"fileSystemName\",4\r";
+	//char commande[111] = "AT+UHTTPC=0,4,\"/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"LatitudeLongitude\",\"fileSystemName\",4\r";
 	
   AT_command commandePost = init_AT_command(4,"AT+UHTTPC=0,4,\"/api/1/csr/rdm?apikey=2bPklUk5bQwezsMckFc7lZkWQcxLTg\",\"fileSystemName\",\"LatitudeLongitude\",4\r",AT_C_UHTTPC,3000);
 
