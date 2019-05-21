@@ -196,6 +196,7 @@ void creationFichier(UART_HandleTypeDef* huart, int8_t* latitude, int8_t* longit
 
 void connexion_ftp(UART_HandleTypeDef* huart)
 {
+	uint8_t cpt_timeout = 0;
 	int nbCommand = 6;
 	AT_command initsCommands[nbCommand];
 	
@@ -218,6 +219,7 @@ void connexion_ftp(UART_HandleTypeDef* huart)
 	initsCommands[5] = init_AT_command(3, "AT+UFTPC=1\r", AT_C_UFTPC, 10000);
 
 	do{
+		
 		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
 			HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
 			currentAT = initsCommands[num_commande];
@@ -229,6 +231,11 @@ void connexion_ftp(UART_HandleTypeDef* huart)
 		else{
 			HAL_UART_Transmit(&huart2,(uint8_t*)"***Connexion serveur FTP : RETRY***\n",36,10);
 			uartEndLine(&huart2);
+		}
+		
+		if (cpt_timeout > 3){
+			initConnection(huart);
+			cpt_timeout = 0;
 		}
 	}while(statusAT != OK);
 	
@@ -254,6 +261,7 @@ void postGPS_ftp(UART_HandleTypeDef* huart)
 
 void getVideo_ftp(UART_HandleTypeDef* huart)
 {
+	uint8_t cpt_timeout = 0;
 	/* Récupération du numéro de la vidéo à lancer afin de l'envoyer à la BeagleBone via Bluetooth */
 	do{
 	currentAT = init_AT_command(3, "AT+UFTPC=4,\"ordre_video\",\"ordre_video\"\r", AT_C_UFTPC, 5000);
@@ -262,8 +270,14 @@ void getVideo_ftp(UART_HandleTypeDef* huart)
 		HAL_UART_Transmit(&huart2,(uint8_t*)"***Recuperation video : OK***\n\n",31,10);
 	else
 		HAL_UART_Transmit(&huart2,(uint8_t*)"***Recuperation video : RETRY***\n\n",34,10);
-	}while(statusAT != OK);
+		
+	if (cpt_timeout > 3){
+		connexion_ftp(huart);
+		cpt_timeout = 0;
+	}
 	
+	cpt_timeout++;
+	}while(statusAT != OK);
 	currentAT = init_AT_command(3, "AT+URDFILE=\"ordre_video\"\r", AT_C_URDFILE, 200);
 	sendAT(huart, currentAT);
 }

@@ -43,9 +43,19 @@
 #define NRF_EVT_PIPE_ERROR_EVENT 0x8D
 #define NRF_EVT_DATA_CREDIT_EVENT 0x8A
 
+/* bluetooth on 1 */
+/*
 #define NRF_PIN_RDYN GPIO_PIN_7
 #define NRF_PIN_REQN_CS GPIO_PIN_12
 #define NRF_PIN_RST GPIO_PIN_10
+*/
+
+/* bluetooth on 2 */
+
+#define NRF_PIN_RDYN GPIO_PIN_8
+#define NRF_PIN_REQN_CS GPIO_PIN_14
+#define NRF_PIN_RST GPIO_PIN_12
+
 
 #define NRF_RX_DEFAULT_VALUE 		0xCC
 #define NRF_DATA_PING						0xFE
@@ -110,8 +120,8 @@ extern SPI_HandleTypeDef hspi2;
 
 #define ble_reset_high()    HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_SET);
 #define ble_reset_low()     HAL_GPIO_WritePin(GPIOE, NRF_PIN_RST, GPIO_PIN_RESET)
-#define reqn_set_high()     HAL_GPIO_WritePin(GPIOB, NRF_PIN_REQN_CS, GPIO_PIN_SET)
-#define reqn_set_low()      HAL_GPIO_WritePin(GPIOB, NRF_PIN_REQN_CS, GPIO_PIN_RESET)
+#define reqn_set_high()     HAL_GPIO_WritePin(GPIOE, NRF_PIN_REQN_CS, GPIO_PIN_SET)
+#define reqn_set_low()      HAL_GPIO_WritePin(GPIOE, NRF_PIN_REQN_CS, GPIO_PIN_RESET)
 #define rdyn_is_high()      (HAL_GPIO_ReadPin(GPIOE, NRF_PIN_RDYN) == GPIO_PIN_SET)
 #define rdyn_is_low()       (HAL_GPIO_ReadPin(GPIOE, NRF_PIN_RDYN) == GPIO_PIN_RESET)
 
