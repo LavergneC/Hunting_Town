@@ -64,6 +64,7 @@ int8_t nrf_setup(void)
 
 				nrf_txrx(&tx,&rx);
         HAL_UART_Transmit(&huart2,(uint8_t *) ".",2, 10); 
+				HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
 			
 				if (rx.length == 0) 
 									continue;
@@ -294,6 +295,7 @@ void nrf_print_rx(struct nrf_rx *rx)
 	
 	for(i=0; i < rx->length; i++){
 		HAL_UART_Transmit(&huart2,(uint8_t*) ".", 1, 10);
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
 	}
 	HAL_UART_Transmit(&huart2, (uint8_t*)"\n", 1, 10);
 }
@@ -331,4 +333,6 @@ void nrf_init_bluetooth(void){
 	nrf_manage_tx(NRF_DATA_DEFAULT);
 	HAL_Delay(1000);
 	nrf_manage_tx(NRF_DATA_DEFAULT);
+	
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
 }

@@ -112,6 +112,7 @@ int main(void)
 	initLARA(&huart3);
 	initConnection(&huart3);
 	connexion_ftp(&huart3);
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
 	
 	HAL_Delay(500);
 	nrf_init_bluetooth();
@@ -124,11 +125,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 		
 		if(bool_getVideo){
 			getVideo_ftp(&huart3);
-			HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+			HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
 			bool_getVideo = 0;
 		}
 		
@@ -398,7 +399,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	if (huart->Instance == huart3.Instance){
 		static char staking[RX_BUFFER_SIZE];
 		static unsigned short index = 0;
-		char flag_reset_index = 'F';
+		volatile char flag_reset_index = 'F';
 		char flag_end_responce = 0;
 		
 		staking[index] = rxBuffer[0];
@@ -512,7 +513,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 					if(value != old_value){
 						valueBluetooth = value;
 						old_value = value;
-						HAL_UART_Transmit(&huart2, (uint8_t*)"On va envoyer\n",14,1); 
+						//HAL_UART_Transmit(&huart2, (uint8_t*)"On va envoyer\n",14,1); 
 					}
 				}
 				else

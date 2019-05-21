@@ -70,7 +70,7 @@ void initLARA(UART_HandleTypeDef *huart){
 	
 	do{
 		for(num_commande = 0; num_commande < nbCommand; num_commande++){
-			//HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
+			HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
 		}
@@ -131,7 +131,7 @@ StatusAT initConnection(UART_HandleTypeDef *huart){
 	//initsCommands[7] = init_AT_command(5, "AT+UPING=\"www.google.com\"\r", 100, AT_C_PING);
 	do{
 		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
-			//HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
+			HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
 			HAL_Delay(100);
@@ -219,6 +219,7 @@ void connexion_ftp(UART_HandleTypeDef* huart)
 
 	do{
 		for(unsigned int num_commande = 0; num_commande < nbCommand; num_commande++){
+			HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_12);
 			currentAT = initsCommands[num_commande];
 			sendAT(huart, currentAT);
 			HAL_Delay(100);
