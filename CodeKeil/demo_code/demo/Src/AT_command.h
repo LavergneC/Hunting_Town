@@ -25,7 +25,7 @@ typedef struct {
 
 int sizeTabChar(char * s);
 void sendAT(UART_HandleTypeDef* huart, AT_command at_command);
-void uartEndLine(UART_HandleTypeDef *huart);
+
 void initLARA(UART_HandleTypeDef *huart);
 AT_command init_AT_command(int nombre_reponses, char * command, TypeATCommand type, uint32_t temps_reponse);
 StatusAT initConnection(UART_HandleTypeDef *huart);

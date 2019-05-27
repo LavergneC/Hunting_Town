@@ -43,13 +43,6 @@ void sendAT(UART_HandleTypeDef* huart, AT_command at_command){
 //	}
 }
 
-void uartEndLine(UART_HandleTypeDef *huart){
-	char n[] = {'\n'};
-	
-	HAL_UART_Transmit(huart,(uint8_t*)n,1,10);
-	
-	return;
-}
 void initLARA(UART_HandleTypeDef *huart){
 	int nbCommand = 3;
 	AT_command initsCommands[nbCommand];

@@ -33,3 +33,11 @@ char * myStrcat(char* commande, char* suiteCommande){
 	
 	return cp_return;
 }
+
+void uartEndLine(UART_HandleTypeDef *huart){
+	char n[] = {'\n'};
+	
+	HAL_UART_Transmit(huart,(uint8_t*)n,1,10);
+	
+	return;
+}

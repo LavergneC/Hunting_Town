@@ -25,7 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "AT_command.h"
 #include "nrf.h"
-//#include "nrf.h"
+#include "gps.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,6 +58,13 @@ StatusAT statusAT = EN_COURS;
 char rxBuffer[1];
 static uint8_t valueBluetooth = NRF_DATA_DEFAULT;
 uint8_t bool_getVideo = 0;
+
+/* GPS */
+char bufGPS[200];
+int8_t latitude[12];
+int8_t longitude[13];
+uint8_t flag_new_data_GPS = 0;
+uint8_t flag_reinit_GPS = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,6 +75,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART6_UART_Init(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -141,6 +149,20 @@ int main(void)
 			valueBluetooth = NRF_DATA_DEFAULT;
 			HAL_UART_Transmit(&huart2, (uint8_t*)"on vient d'envoyer\n", 19, 10);
 			HAL_TIM_Base_Start_IT(&htim2);
+		}
+		
+		if(flag_new_data_GPS == 1){
+			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_15,GPIO_PIN_SET);
+			creationFichier(&huart3,latitude,longitude);
+			postGPS(&huart3);
+			flag_new_data_GPS = 0;
+			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_15,GPIO_PIN_RESET);
+		}
+		
+		if (flag_reinit_GPS){
+			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_SET);
+			initGPS(&huart2);
+			HAL_GPIO_WritePin(GPIOD,GPIO_PIN_14,GPIO_PIN_RESET);
 		}
 		
 		HAL_Delay(100);
@@ -579,6 +601,25 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	}
 	
 	HAL_UART_Receive_IT(huart, (uint8_t *)rxBuffer, 1);
+	
+	if(huart->Instance == huart3.Instance){
+		
+		static uint8_t premierPost = 0;
+		static uint8_t gpsFail = 0;
+		
+		static char trameGlobale[150];
+		
+		static unsigned char index=0;
+		
+		trameGlobale[index]=bufGPS[0];
+		index++;
+		
+		if((trameGlobale[index-2]=='\r') && (trameGlobale[index-1]=='\n'))
+		{
+			if(strstr((const char*)trameGlobale,"$GPRMC") && flag_new_data_GPS == 0 && flag_reinit_GPS == 0)
+				parse_trame(&huart2, trameGlobale, (char*)latitude, (char*)longitude, &premierPost, &gpsFail);
+		}
+	}
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
