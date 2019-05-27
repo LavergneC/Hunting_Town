@@ -459,8 +459,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	if (huart->Instance == huart3.Instance){
+	if (huart->Instance == huart6.Instance){
 		static char staking[RX_BUFFER_SIZE];
 		static unsigned short index = 0;
 		volatile char flag_reset_index = 'F';
