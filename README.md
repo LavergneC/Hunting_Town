@@ -81,7 +81,9 @@ __/!\ Branche extra_demo /!\\__
   * La partie de lancement de la video qui est un script bash : "lancerVideo.sh". Dans le même dossier on trouve également deux fichiers utiles à la personnalisation du bureau debian pour lancer le script simple en deux cliques sur l'écran.
   
 __Module Appel__
-  {NICO}
+
+La récupération du son ambiant des joueurs se fait via un appel passé depuis le maître du jeu au module 4G placé sur les joueurs. Suite à quelques problèmes, on n'a pas eu la possibilité de tester les configurations implémentées du module 4G pour le microphone et la gestion des appels. Une configuration de base a été implémenté sur la branche dédié aux appels.
+Toutes les commandes AT utiles à la configuration du module 4G pour la gestion des appels est détaillé sur le rapport "Rapport_Gibaud_Nicolas.pdf". 
   
 # Conclusion
 
