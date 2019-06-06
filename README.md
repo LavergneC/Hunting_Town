@@ -1,7 +1,9 @@
 # Hunting_Town
 ## Prototypage d'un système embarqué pour Hunting-Town
 
+
 __Objectif : Mettre en place un système couvrant les nombreux besoins d'une session d'escape game dans la ville.__
+
 
 __Overview__
 
@@ -27,6 +29,7 @@ __Notre système__
   La carte STM32 est la carte principale hébergant toutes les communications et faisant office de relai, de son coté le mini-ordinateur 
 BeagleBone devrait être fixé sur le bras d'un joueur et ne possède qu'une tâche : Afficher les vidéos à l'aide d'un écran.
 
+
 __Communication entre maître du jeu et joueurs__
 
 Cette communication est assurée par internet, le maître du jeu est instalé sur sont PC, du coté joueur la STM32 est équipée d'un module 4G :
@@ -49,16 +52,18 @@ __Module GPS__
   En l'état le module GPS montre des difficultés à récupérer avec assez de présision la position des joueurs dans les rues étroites où se détroule le jeu, il faut songer à utiliser un autre moyen de géolocalisation. 
    Nous avons testé le module "3G SARA click" de MikroElektronika embarquant le composant "SARA U-201" qui possède une technologie prometteuse nommée "cellLocate" qui utilise à la fois le GPS et les antennes 3G pour se localiser, après examen de la documentation, le module de MikroElektronika n'embarque PAS de composant GPS rendant cette fonctionalité inutilisable.
 
+
  __Module Vidéo__
  
   L'objectif de cette partie est de créer une chaîne de communication débutant coté maitre du jeu, passant par internet jusqu'à la STM32 puis passant par Bluetooth jusqu'à la BeagleBone où la vidéo indiquée soit être lu.
   
   L'affichage est gérer par l'écran et la cape "GEN4-4DCAPE-43T" achetés ici : 
   <!-- -->
-       https://www.digikey.fr/product-detail/fr/4d-systems-pty-ltd/GEN4-4DCAPE-43T/1613-1386-ND/7360959
+       https://www.digikey.fr/product-detail/fr/4d-systems-pty-ltd/GEN4-4DCAPE-43T/1613-1386-ND/7360959 
   <!-- -->
 
   Pour le son, nous n'avons pas reçu notre commande afin de tester, nous avions pensé utiliser un connecteur USB mâle vers jack femelle sur lequel nous aurions pu branche la petit enceinte.
+  
   
 __/!\ Branche extra_demo /!\\__
 
@@ -67,7 +72,7 @@ __/!\ Branche extra_demo /!\\__
   La partie Bluetooth est développée sur le module "BLE P click" de MikroElektronika qui embarque le composant "nRF8001". Le driver est basé sur le ce gitHub :
   
   <!-- -->
-       https://github.com/sgreg/avr-nrf8001
+       https://github.com/sgreg/avr-nrf8001 
  <!-- --> 
  
   Mais il est très grandement modifié. Le code est situé dans les fichiers nrf.h et nrf.c.
