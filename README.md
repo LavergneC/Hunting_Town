@@ -9,10 +9,10 @@ __Overview__
 
  1. Modules nécessaires :
  
-    * <Comm> Communication entre les joueurs et le maitre du jeu
-    * <GPS> Récupération de la position des joueurs
-    * <Vidéo> Depuis le PC du maitre du jeu, lancer une vidéo sur l'écran des joueurs (son compris)
-    * <Appel> Récupération du son des joueurs
+    * {Comm} Communication entre les joueurs et le maitre du jeu
+    * {GPS} Récupération de la position des joueurs
+    * {Vidéo} Depuis le PC du maitre du jeu, lancer une vidéo sur l'écran des joueurs (son compris)
+    * {Appel} Récupération du son des joueurs
   
  2. Besoins :
  
@@ -30,7 +30,7 @@ __Notre système__
 BeagleBone devrait être fixé sur le bras d'un joueur et ne possède qu'une tâche : Afficher les vidéos à l'aide d'un écran.
 
 
-__Communication entre maître du jeu et joueurs__
+__{Comm} Communication entre maître du jeu et joueurs__
 
 Cette communication est assurée par internet, le maître du jeu est instalé sur sont PC, du coté joueur la STM32 est équipée d'un module 4G :
 
@@ -42,7 +42,7 @@ Cette communication est assurée par internet, le maître du jeu est instalé su
     * Communication grâce à un serveur ftp
 
 
-__Module GPS__
+__{GPS} Module GPS__
 
   L'objectif de cette partie est de récupérer la possition GPS des joueurs et de la transmettre à maitre du jeu.
   Pour la mise en place du GPS nous avons choisis le module "NANO GPS click" de MikroElektronika, ce module embarque le composant "Nano Hornet". Plus d'information sur la mise en place du driver de ce composant dans "Rapport_Venier_Antoine.pdf".
@@ -53,7 +53,7 @@ __Module GPS__
    Nous avons testé le module "3G SARA click" de MikroElektronika embarquant le composant "SARA U-201" qui possède une technologie prometteuse nommée "cellLocate" qui utilise à la fois le GPS et les antennes 3G pour se localiser, après examen de la documentation, le module de MikroElektronika n'embarque PAS de composant GPS rendant cette fonctionalité inutilisable.
 
 
- __Module Vidéo__
+ __{Vidéo} Module Vidéo__
  
   L'objectif de cette partie est de créer une chaîne de communication débutant coté maitre du jeu, passant par internet jusqu'à la STM32 puis passant par Bluetooth jusqu'à la BeagleBone où la vidéo indiquée soit être lu.
   
@@ -80,7 +80,7 @@ __/!\ Branche extra_demo /!\\__
   * L'automatisation de la partie bluetooth dans un script en langage "expect" que l'on trouve dans "script_blue.sh"
   * La partie de lancement de la video qui est un script bash : "lancerVideo.sh". Dans le même dossier on trouve également deux fichiers utiles à la personnalisation du bureau debian pour lancer le script simple en deux cliques sur l'écran.
   
-__Module Appel__
+__{Appel} Module Appel__
 
 La récupération du son ambiant des joueurs se fait via un appel passé depuis le maître du jeu au module 4G placé sur les joueurs. Suite à quelques problèmes, on n'a pas eu la possibilité de tester les configurations implémentées du module 4G pour le microphone et la gestion des appels. Une configuration de base a été implémenté sur la branche dédié aux appels.
 Toutes les commandes AT utiles à la configuration du module 4G pour la gestion des appels est détaillé sur le rapport "Rapport_Gibaud_Nicolas.pdf". 
